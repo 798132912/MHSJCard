@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://s56nni84jiv"
+
+[deps]
+
+files=["res://data/tables/GameConfig.name.translation", "res://data/tables/GameConfig.value.translation", "res://data/tables/GameConfig.value.translation", "res://data/tables/GameConfig.system.translation", "res://data/tables/GameConfig.comment.translation"]
+
+source_file="res://data/tables/GameConfig.csv"
+dest_files=["res://data/tables/GameConfig.name.translation", "res://data/tables/GameConfig.value.translation", "res://data/tables/GameConfig.value.translation", "res://data/tables/GameConfig.system.translation", "res://data/tables/GameConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

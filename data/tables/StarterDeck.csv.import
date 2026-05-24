@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cw7rlqyq1ulgy"
+
+[deps]
+
+files=["res://data/tables/StarterDeck.unit.translation", "res://data/tables/StarterDeck.card.translation", "res://data/tables/StarterDeck.count.translation", "res://data/tables/StarterDeck.comment.translation"]
+
+source_file="res://data/tables/StarterDeck.csv"
+dest_files=["res://data/tables/StarterDeck.unit.translation", "res://data/tables/StarterDeck.card.translation", "res://data/tables/StarterDeck.count.translation", "res://data/tables/StarterDeck.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

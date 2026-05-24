@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://243l6hih31pb"
+
+[deps]
+
+files=["res://data/tables/EnemyAction.name.translation", "res://data/tables/EnemyAction.action.translation", "res://data/tables/EnemyAction.target.translation", "res://data/tables/EnemyAction.intent.translation", "res://data/tables/EnemyAction.effect.translation", "res://data/tables/EnemyAction.intent.translation", "res://data/tables/EnemyAction.comment.translation"]
+
+source_file="res://data/tables/EnemyAction.csv"
+dest_files=["res://data/tables/EnemyAction.name.translation", "res://data/tables/EnemyAction.action.translation", "res://data/tables/EnemyAction.target.translation", "res://data/tables/EnemyAction.intent.translation", "res://data/tables/EnemyAction.effect.translation", "res://data/tables/EnemyAction.intent.translation", "res://data/tables/EnemyAction.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

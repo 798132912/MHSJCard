@@ -1,0 +1,7 @@
+﻿id,name,hit_magic_shield,hit_magic_defense,hit_hp,arousal_modifier,comment
+normal,普通伤害,true,true,true,none,按护盾、防御、生命顺序结算
+magic,魔力伤害,true,true,true,down,每10点发情值降低1点
+charm,魅惑伤害,true,true,true,up,每10点发情值提升1点
+pierce,穿透伤害,false,true,true,none,无视魔力护盾
+true,真实伤害,false,false,true,none,直接扣生命值
+shield_break,护盾破坏,true,false,false,none,只扣魔力护盾

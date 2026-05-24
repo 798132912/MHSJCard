@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://ri85qvfv2tp4"
+
+[deps]
+
+files=["res://data/tables/TurnPhaseConfig.name.translation", "res://data/tables/TurnPhaseConfig.order.translation", "res://data/tables/TurnPhaseConfig.comment.translation"]
+
+source_file="res://data/tables/TurnPhaseConfig.csv"
+dest_files=["res://data/tables/TurnPhaseConfig.name.translation", "res://data/tables/TurnPhaseConfig.order.translation", "res://data/tables/TurnPhaseConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

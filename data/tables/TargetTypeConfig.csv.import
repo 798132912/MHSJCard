@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://c3ipg1jyxl338"
+
+[deps]
+
+files=["res://data/tables/TargetTypeConfig.name.translation", "res://data/tables/TargetTypeConfig.need.translation", "res://data/tables/TargetTypeConfig.legal.translation", "res://data/tables/TargetTypeConfig.comment.translation"]
+
+source_file="res://data/tables/TargetTypeConfig.csv"
+dest_files=["res://data/tables/TargetTypeConfig.name.translation", "res://data/tables/TargetTypeConfig.need.translation", "res://data/tables/TargetTypeConfig.legal.translation", "res://data/tables/TargetTypeConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -1,0 +1,9 @@
+﻿id,name,type,default_value,min_value,max_value,keep_after_battle,comment
+hp,生命值,核心资源,70,0,,false,生命值为0或以下时失败
+magic,魔力,回合资源,0,0,,false,当前回合出牌资源
+magic_max,魔力上限,形态资源,0,0,,false,决定回合开始恢复多少魔力
+magic_shield,魔力护盾,防御资源,0,0,,false,先于魔力防御抵挡普通伤害
+magic_defense,魔力防御,变身耐久,0,0,,false,归零时解除变身
+arousal,发情值,特殊属性,0,0,100,true,影响魔力伤害和魅惑伤害
+sensitivity,敏感值,特殊属性,0,0,,true,放大获得的发情值
+corruption,堕落值,特殊属性,0,0,,true,影响卡牌和选项使用条件

@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://b0n4y4kc2l2ii"
+
+[deps]
+
+files=["res://data/tables/CardEffect.effect.translation", "res://data/tables/CardEffect.value.translation", "res://data/tables/CardEffect.target.translation", "res://data/tables/CardEffect.target.translation", "res://data/tables/CardEffect.trigger.translation", "res://data/tables/CardEffect.duration.translation", "res://data/tables/CardEffect.duration.translation", "res://data/tables/CardEffect.duration.translation", "res://data/tables/CardEffect.stack.translation", "res://data/tables/CardEffect.stack.translation", "res://data/tables/CardEffect.stack.translation", "res://data/tables/CardEffect.expire.translation", "res://data/tables/CardEffect.on.translation", "res://data/tables/CardEffect.comment.translation"]
+
+source_file="res://data/tables/CardEffect.csv"
+dest_files=["res://data/tables/CardEffect.effect.translation", "res://data/tables/CardEffect.value.translation", "res://data/tables/CardEffect.target.translation", "res://data/tables/CardEffect.target.translation", "res://data/tables/CardEffect.trigger.translation", "res://data/tables/CardEffect.duration.translation", "res://data/tables/CardEffect.duration.translation", "res://data/tables/CardEffect.duration.translation", "res://data/tables/CardEffect.stack.translation", "res://data/tables/CardEffect.stack.translation", "res://data/tables/CardEffect.stack.translation", "res://data/tables/CardEffect.expire.translation", "res://data/tables/CardEffect.on.translation", "res://data/tables/CardEffect.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

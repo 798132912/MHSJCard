@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://brrd6tjnmmhfr"
+
+[deps]
+
+files=["res://data/tables/CardTypeConfig.name.translation", "res://data/tables/CardTypeConfig.comment.translation"]
+
+source_file="res://data/tables/CardTypeConfig.csv"
+dest_files=["res://data/tables/CardTypeConfig.name.translation", "res://data/tables/CardTypeConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

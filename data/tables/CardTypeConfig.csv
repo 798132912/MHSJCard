@@ -1,0 +1,8 @@
+﻿id,name,comment
+spell,法术,通过魔力释放的主动卡牌
+transform,变身,进入魔法少女形态
+attack,攻击,主要造成伤害
+skill,技能,提供防御、抽牌、资源变化等效果
+status,状态,通常由敌人或特殊效果加入牌堆
+curse,诅咒,负面卡牌
+special,特殊,不归入常规分类的卡牌

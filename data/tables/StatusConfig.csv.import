@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cycblju67v41g"
+
+[deps]
+
+files=["res://data/tables/StatusConfig.name.translation", "res://data/tables/StatusConfig.type.translation", "res://data/tables/StatusConfig.default.translation", "res://data/tables/StatusConfig.show.translation", "res://data/tables/StatusConfig.remove.translation", "res://data/tables/StatusConfig.comment.translation"]
+
+source_file="res://data/tables/StatusConfig.csv"
+dest_files=["res://data/tables/StatusConfig.name.translation", "res://data/tables/StatusConfig.type.translation", "res://data/tables/StatusConfig.default.translation", "res://data/tables/StatusConfig.show.translation", "res://data/tables/StatusConfig.remove.translation", "res://data/tables/StatusConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

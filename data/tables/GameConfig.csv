@@ -1,0 +1,5 @@
+﻿id,name,value,value_type,system,comment
+default_draw_count,默认每回合抽牌数量,5,int,回合系统,角色表可覆盖该值
+default_hand_limit,默认手牌上限,10,int,牌堆系统,角色表可覆盖该值
+arousal_max,发情值上限,100,int,特殊属性系统,达到上限时触发高潮状态
+human_base_magic_max,人类形态基础魔力上限,0,int,形态系统,人类形态默认不能使用需要魔力的卡牌

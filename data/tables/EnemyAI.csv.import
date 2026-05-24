@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://b5nufnytnsh25"
+
+[deps]
+
+files=["res://data/tables/EnemyAI.priority.translation", "res://data/tables/EnemyAI.condition.translation", "res://data/tables/EnemyAI.action.translation", "res://data/tables/EnemyAI.comment.translation"]
+
+source_file="res://data/tables/EnemyAI.csv"
+dest_files=["res://data/tables/EnemyAI.priority.translation", "res://data/tables/EnemyAI.condition.translation", "res://data/tables/EnemyAI.action.translation", "res://data/tables/EnemyAI.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

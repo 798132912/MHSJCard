@@ -1,0 +1,6 @@
+﻿id,name,show_value,comment
+attack,攻击,true,敌人将造成伤害
+defense,防御,true,敌人将获得护盾
+debuff,施加负面,true,敌人将施加负面或提升特殊属性
+mixed,混合,true,同时包含多种效果
+unknown,未知,false,隐藏或未明确的行动

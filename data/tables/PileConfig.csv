@@ -1,0 +1,6 @@
+﻿id,name,show_ui,drawable,return_to_draw,comment
+draw,抽牌堆,true,true,false,回合开始从这里抽牌
+hand,手牌,true,false,false,玩家可从手牌出牌
+discard,弃牌堆,true,false,true,抽牌堆为空时洗回抽牌堆
+exhaust,除外堆,true,false,false,本场战斗默认不再回流
+status_hold,状态持有,false,false,false,变身卡牌由变身状态持有，不作为UI牌区显示

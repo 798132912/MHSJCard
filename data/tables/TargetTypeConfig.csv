@@ -1,0 +1,7 @@
+﻿id,name,need_select,legal_target,comment
+self,自身,false,玩家,作用于玩家自身
+single_enemy,单个敌人,true,敌人,需要选择一个敌人
+all_enemies,所有敌人,false,敌人,作用于所有敌人
+random_enemy,随机敌人,false,敌人,随机选择敌人
+none,无目标,false,无,不需要目标
+player,玩家,false,玩家,敌人行动作用于玩家

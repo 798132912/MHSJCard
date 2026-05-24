@@ -1,0 +1,4 @@
+﻿pool_id,card_id,weight,can_reward,comment
+card_pool_basic,card_star_shot,100,true,基础奖励池占位
+card_pool_basic,card_magic_defense,100,true,基础奖励池占位
+card_pool_basic,card_ice_armor,50,true,冰甲样例牌

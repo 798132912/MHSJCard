@@ -1,0 +1,3 @@
+﻿id,name,base_magic_max,can_play_magic_card,enter_method,exit_condition,comment
+human,人类形态,0,false,战斗开始或解除变身,打出变身牌,初始形态
+magical_girl,魔法少女形态,由变身卡提供,true,打出星光变身,魔力防御 <= 0,核心战斗形态
