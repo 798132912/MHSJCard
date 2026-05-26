@@ -1,0 +1,2 @@
+﻿id,name,unit_type,max_hp,base_draw_count,base_hand_limit,human_base_magic_max,init_magic_shield,init_magic_defense,init_arousal,arousal_max,init_sensitivity,init_corruption,starter_deck_id,card_pool_id,battle_image_path,portrait_path,hit_motion_profile,comment
+player_star,玩家操作角色,player,30,5,10,0,0,0,0,100,0,0,starter_star,card_pool_basic,res://assets/characters/player_star_battle.png,res://assets/characters/player_star_portrait.png,bump,初始为人类形态，通过星光变身进入魔法少女形态

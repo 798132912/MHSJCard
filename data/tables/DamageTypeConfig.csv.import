@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dgjy8q1nb1piy"
+
+[deps]
+
+files=["res://data/tables/DamageTypeConfig.name.translation", "res://data/tables/DamageTypeConfig.hit.translation", "res://data/tables/DamageTypeConfig.hit.translation", "res://data/tables/DamageTypeConfig.hit.translation", "res://data/tables/DamageTypeConfig.arousal.translation", "res://data/tables/DamageTypeConfig.comment.translation"]
+
+source_file="res://data/tables/DamageTypeConfig.csv"
+dest_files=["res://data/tables/DamageTypeConfig.name.translation", "res://data/tables/DamageTypeConfig.hit.translation", "res://data/tables/DamageTypeConfig.hit.translation", "res://data/tables/DamageTypeConfig.hit.translation", "res://data/tables/DamageTypeConfig.arousal.translation", "res://data/tables/DamageTypeConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

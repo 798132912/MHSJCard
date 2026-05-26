@@ -1,0 +1,7 @@
+﻿id,name,order,comment
+combat_start,战斗开始,10,初始化角色、敌人、牌堆
+player_turn_start,玩家回合开始,20,恢复魔力并抽牌
+player_action,玩家行动,30,玩家出牌和选择目标
+player_turn_end,玩家回合结束,40,未打出手牌进入弃牌堆
+enemy_turn,敌人回合,50,敌人根据意图行动
+combat_end,战斗结束,60,结算胜负和奖励

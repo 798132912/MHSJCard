@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dw4dfk5r2qvll"
+
+[deps]
+
+files=["res://data/tables/PileConfig.name.translation", "res://data/tables/PileConfig.show.translation", "res://data/tables/PileConfig.drawable.translation", "res://data/tables/PileConfig.return.translation", "res://data/tables/PileConfig.comment.translation"]
+
+source_file="res://data/tables/PileConfig.csv"
+dest_files=["res://data/tables/PileConfig.name.translation", "res://data/tables/PileConfig.show.translation", "res://data/tables/PileConfig.drawable.translation", "res://data/tables/PileConfig.return.translation", "res://data/tables/PileConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

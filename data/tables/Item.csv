@@ -1,0 +1,2 @@
+﻿id,name,item_type,rarity,effect_ids,can_get,comment
+item_placeholder,占位道具,0,0,,false,道具系统暂未启用，保留表结构

@@ -1,0 +1,6 @@
+.godot/
+.godot_user/
+.git_upload/
+.codex_tmp/
+*.tmp
+*.log

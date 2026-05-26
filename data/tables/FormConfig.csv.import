@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://b0l5xqdtaovcs"
+
+[deps]
+
+files=["res://data/tables/FormConfig.name.translation", "res://data/tables/FormConfig.base.translation", "res://data/tables/FormConfig.can.translation", "res://data/tables/FormConfig.enter.translation", "res://data/tables/FormConfig.exit.translation", "res://data/tables/FormConfig.comment.translation"]
+
+source_file="res://data/tables/FormConfig.csv"
+dest_files=["res://data/tables/FormConfig.name.translation", "res://data/tables/FormConfig.base.translation", "res://data/tables/FormConfig.can.translation", "res://data/tables/FormConfig.enter.translation", "res://data/tables/FormConfig.exit.translation", "res://data/tables/FormConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

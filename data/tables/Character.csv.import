@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cbu13y5iqqyim"
+
+[deps]
+
+files=["res://data/tables/Character.name.translation", "res://data/tables/Character.unit.translation", "res://data/tables/Character.max.translation", "res://data/tables/Character.base.translation", "res://data/tables/Character.base.translation", "res://data/tables/Character.human.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.arousal.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.starter.translation", "res://data/tables/Character.card.translation", "res://data/tables/Character.battle.translation", "res://data/tables/Character.portrait.translation", "res://data/tables/Character.hit.translation", "res://data/tables/Character.comment.translation"]
+
+source_file="res://data/tables/Character.csv"
+dest_files=["res://data/tables/Character.name.translation", "res://data/tables/Character.unit.translation", "res://data/tables/Character.max.translation", "res://data/tables/Character.base.translation", "res://data/tables/Character.base.translation", "res://data/tables/Character.human.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.arousal.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.init.translation", "res://data/tables/Character.starter.translation", "res://data/tables/Character.card.translation", "res://data/tables/Character.battle.translation", "res://data/tables/Character.portrait.translation", "res://data/tables/Character.hit.translation", "res://data/tables/Character.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

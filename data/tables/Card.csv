@@ -1,0 +1,8 @@
+﻿id,name,owner_type,cost,card_type,target,play_destination,exhaust,effect_ids,description,comment,art_path,frame_path,icon_path
+card_star_transform,星光变身,player,0,20,10,30,false,100001;100002;100003;100004,获得70点魔力防御、3点魔力上限和3点当前魔力，自身进入魔法少女状态。变身消失后进入弃牌堆。,不进入弃牌堆或除外堆，UI上通过状态图标显示变身,res://assets/cards/card_star_transform_art.png,res://assets/ui/card_frame_player.png,
+card_star_shot,星光射击,player,1,10,20,20,false,100101,造成5点魔力属性伤害。,基础攻击牌,res://assets/cards/card_star_shot_art.png,res://assets/ui/card_frame_player.png,
+card_magic_defense,魔力防御,player,1,10,10,20,false,100201,获得5点魔力护盾。,基础防御牌,res://assets/cards/card_magic_defense_art.png,res://assets/ui/card_frame_player.png,
+card_ice_armor,冰甲术,player,1,10,10,20,false,100301,给自己附加1层冰甲。,用于理解附加持续效果的样例牌,,,
+card_enemy_assault,袭击,enemy,0,10,30,20,false,200001;200002,造成5点普通伤害，并提升目标8点发情值。,怪物行动卡,res://assets/enemy_actions/card_enemy_assault_art.png,res://assets/ui/card_frame_player.png,
+card_enemy_miasma_shield,瘴气护盾,enemy,0,40,10,20,false,200003,获得6点魔力护盾。,怪物行动卡,res://assets/enemy_actions/card_enemy_miasma_shield_art.png,res://assets/ui/card_frame_player.png,
+card_enemy_hypnosis_ray,催眠光线,enemy,0,40,30,20,false,200004,提升目标10点敏感值。,怪物行动卡,res://assets/enemy_actions/card_enemy_hypnosis_ray_art.png,res://assets/ui/card_frame_player.png,

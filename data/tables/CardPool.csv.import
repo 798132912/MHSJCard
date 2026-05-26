@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bdcrtjojitnao"
+
+[deps]
+
+files=["res://data/tables/CardPool.card.translation", "res://data/tables/CardPool.weight.translation", "res://data/tables/CardPool.can.translation", "res://data/tables/CardPool.comment.translation"]
+
+source_file="res://data/tables/CardPool.csv"
+dest_files=["res://data/tables/CardPool.card.translation", "res://data/tables/CardPool.weight.translation", "res://data/tables/CardPool.can.translation", "res://data/tables/CardPool.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

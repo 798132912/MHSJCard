@@ -1,0 +1,212 @@
+{
+  "note": "从单张概念图提取 + 根据其风格重绘的透明PNG工程图素。文字/数字建议在引擎中叠加。",
+  "assets": [
+    {
+      "file": "button_end_turn.png",
+      "size": [
+        275,
+        110
+      ],
+      "source_box": [
+        1235,
+        580,
+        1510,
+        690
+      ],
+      "usage": "结束回合按钮，可直接作为按钮底图/参考"
+    },
+    {
+      "file": "card_back_draw_pile.png",
+      "size": [
+        135,
+        190
+      ],
+      "source_box": [
+        30,
+        750,
+        165,
+        940
+      ],
+      "usage": "抽牌堆卡背/牌堆底座"
+    },
+    {
+      "file": "card_back_discard_pile.png",
+      "size": [
+        155,
+        195
+      ],
+      "source_box": [
+        1260,
+        725,
+        1415,
+        920
+      ],
+      "usage": "弃牌堆卡背/牌堆底座"
+    },
+    {
+      "file": "card_back_exhaust_pile.png",
+      "size": [
+        125,
+        195
+      ],
+      "source_box": [
+        1390,
+        725,
+        1515,
+        920
+      ],
+      "usage": "消耗堆卡背/牌堆底座"
+    },
+    {
+      "file": "energy_orb_full.png",
+      "size": [
+        135,
+        140
+      ],
+      "source_box": [
+        272,
+        565,
+        407,
+        705
+      ],
+      "usage": "能量/费用圆形组件"
+    },
+    {
+      "file": "enemy_intent_panel.png",
+      "size": [
+        275,
+        275
+      ],
+      "source_box": [
+        1260,
+        245,
+        1535,
+        520
+      ],
+      "usage": "敌人意图面板框"
+    },
+    {
+      "file": "player_hp_block.png",
+      "size": [
+        240,
+        120
+      ],
+      "source_box": [
+        20,
+        570,
+        260,
+        690
+      ],
+      "usage": "玩家HP/护盾状态块"
+    },
+    {
+      "file": "enemy_hp_bar_block.png",
+      "size": [
+        535,
+        65
+      ],
+      "source_box": [
+        675,
+        80,
+        1210,
+        145
+      ],
+      "usage": "敌人血条和名称条"
+    },
+    {
+      "file": "side_status_icon_stack_sample.png",
+      "size": [
+        74,
+        430
+      ],
+      "source_box": [
+        8,
+        90,
+        82,
+        520
+      ],
+      "usage": "左侧状态图标组参考"
+    },
+    {
+      "file": "card_front_sample_with_art.png",
+      "size": [
+        230,
+        325
+      ],
+      "source_box": [
+        255,
+        665,
+        485,
+        990
+      ],
+      "usage": "完整卡牌样张，含卡图和文字，仅作参考"
+    },
+    {
+      "file": "card_front_template_blank.png",
+      "size": [
+        260,
+        360
+      ],
+      "source_box": null,
+      "usage": "可复用空白卡牌正面模板：自行放置卡图、标题、描述、费用"
+    },
+    {
+      "file": "card_back_clean.png",
+      "size": [
+        180,
+        260
+      ],
+      "source_box": null,
+      "usage": "可复用卡背图素，适合抽牌堆/弃牌堆/消耗堆"
+    },
+    {
+      "file": "pile_base_clean.png",
+      "size": [
+        180,
+        215
+      ],
+      "source_box": null,
+      "usage": "牌堆底座模板，数字和文字建议引擎内叠加"
+    },
+    {
+      "file": "enemy_intent_row_clean.png",
+      "size": [
+        285,
+        58
+      ],
+      "source_box": null,
+      "usage": "敌人意图单行底板，图标/文字/数值在引擎内叠加"
+    },
+    {
+      "file": "status_icon_frame_clean.png",
+      "size": [
+        64,
+        64
+      ],
+      "source_box": null,
+      "usage": "Buff/Debuff图标外框，内部图标由引擎替换"
+    },
+    {
+      "file": "hp_bar_clean.png",
+      "size": [
+        560,
+        54
+      ],
+      "source_box": null,
+      "usage": "敌人/玩家血条底板；实际血量宽度建议引擎内控制"
+    },
+    {
+      "file": "button_end_turn_clean.png",
+      "size": [
+        320,
+        96
+      ],
+      "source_box": null,
+      "usage": "干净的结束回合按钮底图，不含文字，可本地化"
+    },
+    {
+      "file": "asset_atlas_preview.png",
+      "usage": "素材预览图，不建议直接用于工程"
+    }
+  ]
+}

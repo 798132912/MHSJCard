@@ -1,0 +1,243 @@
+[gd_scene load_steps=2 format=3 uid="uid://combat_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/combat_scene.gd" id="1_combat_scene"]
+
+[node name="CombatScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_combat_scene")
+
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = 76.0
+grow_horizontal = 2
+
+[node name="TurnStateLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+text = "准备中"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BattleArea" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 96.0
+offset_right = -24.0
+offset_bottom = -360.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerUnit" type="VBoxContainer" parent="BattleArea"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 120.0
+offset_top = -180.0
+offset_right = 440.0
+offset_bottom = 180.0
+
+[node name="NameLabel" type="Label" parent="BattleArea/PlayerUnit"]
+layout_mode = 2
+text = "玩家"
+horizontal_alignment = 1
+
+[node name="ImageFrame" type="PanelContainer" parent="BattleArea/PlayerUnit"]
+custom_minimum_size = Vector2(280, 280)
+layout_mode = 2
+
+[node name="Placeholder" type="ColorRect" parent="BattleArea/PlayerUnit/ImageFrame"]
+layout_mode = 2
+color = Color(0.4, 0.72, 0.94, 1)
+
+[node name="Texture" type="TextureRect" parent="BattleArea/PlayerUnit/ImageFrame"]
+visible = false
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnemyUnit" type="VBoxContainer" parent="BattleArea"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -440.0
+offset_top = -210.0
+offset_right = -120.0
+offset_bottom = 180.0
+
+[node name="IntentLabel" type="Label" parent="BattleArea/EnemyUnit"]
+layout_mode = 2
+text = "意图：无"
+horizontal_alignment = 1
+
+[node name="IntentArt" type="TextureRect" parent="BattleArea/EnemyUnit"]
+custom_minimum_size = Vector2(180, 120)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="BattleArea/EnemyUnit"]
+layout_mode = 2
+text = "敌人"
+horizontal_alignment = 1
+
+[node name="ImageFrame" type="PanelContainer" parent="BattleArea/EnemyUnit"]
+custom_minimum_size = Vector2(280, 280)
+layout_mode = 2
+
+[node name="Placeholder" type="ColorRect" parent="BattleArea/EnemyUnit/ImageFrame"]
+layout_mode = 2
+color = Color(0.78, 0.36, 0.48, 1)
+
+[node name="Texture" type="TextureRect" parent="BattleArea/EnemyUnit/ImageFrame"]
+visible = false
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CenterArea" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 620.0
+offset_top = 128.0
+offset_right = -620.0
+offset_bottom = -360.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BattleLogPanel" type="PanelContainer" parent="CenterArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="CenterArea/BattleLogPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="BattleLog" type="Label" parent="CenterArea/BattleLogPanel/Margin"]
+layout_mode = 2
+text = "战斗日志"
+autowrap_mode = 3
+
+[node name="StatusArea" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -386.0
+offset_right = -24.0
+offset_bottom = -226.0
+grow_horizontal = 2
+theme_override_constants/separation = 12
+
+[node name="PlayerPanel" type="PanelContainer" parent="StatusArea"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="StatusArea/PlayerPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="PlayerInfo" type="Label" parent="StatusArea/PlayerPanel/Margin"]
+layout_mode = 2
+text = "玩家数据"
+autowrap_mode = 3
+
+[node name="EnemyPanel" type="PanelContainer" parent="StatusArea"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="StatusArea/EnemyPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="EnemyInfo" type="Label" parent="StatusArea/EnemyPanel/Margin"]
+layout_mode = 2
+text = "敌人数据"
+autowrap_mode = 3
+
+[node name="PilePanel" type="PanelContainer" parent="StatusArea"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="StatusArea/PilePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="PileInfo" type="Label" parent="StatusArea/PilePanel/Margin"]
+layout_mode = 2
+text = "牌堆信息"
+autowrap_mode = 3
+
+[node name="ActionArea" type="VBoxContainer" parent="StatusArea"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EndTurnButton" type="Button" parent="StatusArea/ActionArea"]
+custom_minimum_size = Vector2(200, 64)
+layout_mode = 2
+text = "结束回合"
+
+[node name="RestartButton" type="Button" parent="StatusArea/ActionArea"]
+custom_minimum_size = Vector2(200, 48)
+layout_mode = 2
+text = "重新开始"
+
+[node name="HandPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -214.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+
+[node name="Margin" type="MarginContainer" parent="HandPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="HandList" type="HBoxContainer" parent="HandPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8

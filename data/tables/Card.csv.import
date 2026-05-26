@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://rxmvcrjewx0d"
+
+[deps]
+
+files=["res://data/tables/Card.name.translation", "res://data/tables/Card.owner.translation", "res://data/tables/Card.cost.translation", "res://data/tables/Card.card.translation", "res://data/tables/Card.target.translation", "res://data/tables/Card.play.translation", "res://data/tables/Card.exhaust.translation", "res://data/tables/Card.effect.translation", "res://data/tables/Card.description.translation", "res://data/tables/Card.comment.translation", "res://data/tables/Card.art.translation", "res://data/tables/Card.frame.translation", "res://data/tables/Card.en.translation"]
+
+source_file="res://data/tables/Card.csv"
+dest_files=["res://data/tables/Card.name.translation", "res://data/tables/Card.owner.translation", "res://data/tables/Card.cost.translation", "res://data/tables/Card.card.translation", "res://data/tables/Card.target.translation", "res://data/tables/Card.play.translation", "res://data/tables/Card.exhaust.translation", "res://data/tables/Card.effect.translation", "res://data/tables/Card.description.translation", "res://data/tables/Card.comment.translation", "res://data/tables/Card.art.translation", "res://data/tables/Card.frame.translation", "res://data/tables/Card.en.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

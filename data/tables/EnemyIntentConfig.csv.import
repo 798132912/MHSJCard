@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://b8ho4fjhqvlr1"
+
+[deps]
+
+files=["res://data/tables/EnemyIntentConfig.name.translation", "res://data/tables/EnemyIntentConfig.show.translation", "res://data/tables/EnemyIntentConfig.comment.translation"]
+
+source_file="res://data/tables/EnemyIntentConfig.csv"
+dest_files=["res://data/tables/EnemyIntentConfig.name.translation", "res://data/tables/EnemyIntentConfig.show.translation", "res://data/tables/EnemyIntentConfig.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
