@@ -21,6 +21,7 @@ $Tables = @(
     @{ Excel = "CardEffect.xlsx"; Csv = "CardEffect.csv" },
     @{ Excel = "StarterDeck.xlsx"; Csv = "StarterDeck.csv" },
     @{ Excel = "CardPool.xlsx"; Csv = "CardPool.csv" },
+    @{ Excel = "Level.xlsx"; Csv = "Level.csv" },
     @{ Excel = "Enemy.xlsx"; Csv = "Enemy.csv" },
     @{ Excel = "EnemyAction.xlsx"; Csv = "EnemyAction.csv" },
     @{ Excel = "EnemyAI.xlsx"; Csv = "EnemyAI.csv" },

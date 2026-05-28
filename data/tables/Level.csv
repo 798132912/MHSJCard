@@ -1,0 +1,2 @@
+﻿id,name,enemy_id,background_path,comment
+level_demo_trial,试玩关,enemy_corrupted_student,res://assets/backgrounds/backgrounds_1.png,Demo 当前唯一关卡；背景资源不存在时使用默认底色

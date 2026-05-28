@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dfrfulj316edt"
+
+[deps]
+
+files=["res://data/tables/Level.name.translation", "res://data/tables/Level.enemy.translation", "res://data/tables/Level.background.translation", "res://data/tables/Level.comment.translation"]
+
+source_file="res://data/tables/Level.csv"
+dest_files=["res://data/tables/Level.name.translation", "res://data/tables/Level.enemy.translation", "res://data/tables/Level.background.translation", "res://data/tables/Level.comment.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

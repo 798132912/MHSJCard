@@ -10,6 +10,7 @@ const ENEMY_TABLE := "res://data/tables/Enemy.csv"
 const ENEMY_ACTION_TABLE := "res://data/tables/EnemyAction.csv"
 const CARD_EFFECT_TABLE := "res://data/tables/CardEffect.csv"
 const CARD_POOL_TABLE := "res://data/tables/CardPool.csv"
+const LEVEL_TABLE := "res://data/tables/Level.csv"
 const ENEMY_AI_TABLE := "res://data/tables/EnemyAI.csv"
 const ITEM_TABLE := "res://data/tables/Item.csv"
 const GAME_CONFIG_TABLE := "res://data/tables/GameConfig.csv"
@@ -30,6 +31,7 @@ var enemies: Array[Dictionary] = []
 var enemy_actions: Array[Dictionary] = []
 var card_effects: Array[Dictionary] = []
 var card_pools: Array[Dictionary] = []
+var levels: Array[Dictionary] = []
 var enemy_ai_rules: Array[Dictionary] = []
 var items: Array[Dictionary] = []
 var game_configs: Array[Dictionary] = []
@@ -51,6 +53,7 @@ func load_all() -> void:
 	enemy_actions = TableLoaderScript.load_csv(ENEMY_ACTION_TABLE)
 	card_effects = TableLoaderScript.load_csv(CARD_EFFECT_TABLE)
 	card_pools = TableLoaderScript.load_csv(CARD_POOL_TABLE)
+	levels = TableLoaderScript.load_csv(LEVEL_TABLE)
 	enemy_ai_rules = TableLoaderScript.load_csv(ENEMY_AI_TABLE)
 	items = TableLoaderScript.load_csv(ITEM_TABLE)
 	game_configs = TableLoaderScript.load_csv(GAME_CONFIG_TABLE)
@@ -75,6 +78,25 @@ func find_card(card_id: String) -> Dictionary:
 
 func find_card_effect(effect_id: String) -> Dictionary:
 	return find_by_id(card_effects, "id", effect_id)
+
+func find_level(level_id: String) -> Dictionary:
+	return find_by_id(levels, "id", level_id)
+
+func find_card_type(card_type_id: String) -> Dictionary:
+	return find_by_id(card_type_configs, "id", card_type_id)
+
+func get_card_type_name(card_type_id: String) -> String:
+	var ids := card_type_id.split(";", false)
+	if ids.size() > 1:
+		var names: Array[String] = []
+		for id in ids:
+			names.append(get_card_type_name(id))
+		return " / ".join(names)
+
+	var card_type := find_card_type(card_type_id)
+	if card_type.is_empty():
+		return card_type_id
+	return str(card_type.get("name", card_type_id))
 
 func get_deck_rows(deck_id: String, unit_id: String = "") -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

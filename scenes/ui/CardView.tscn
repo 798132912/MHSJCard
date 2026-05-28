@@ -1,0 +1,143 @@
+[gd_scene format=3 uid="uid://b1kw8spqe1qrs"]
+
+[ext_resource type="Script" uid="uid://c1tkdigxdyloq" path="res://scripts/ui/card_view.gd" id="1_card_view"]
+[ext_resource type="Texture2D" uid="uid://bl51frd4jjcab" path="res://assets/ui/card_frame_player.png" id="2_card_frame"]
+[ext_resource type="Texture2D" uid="uid://v2ouykyc8d6g" path="res://assets/ui/energy_orb_full.png" id="3_energy_orb"]
+[ext_resource type="Texture2D" uid="uid://cswwttog1ohgd" path="res://assets/ui/card_type_label.png" id="4_type_label"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_card"]
+
+[node name="CardView" type="Button" unique_id=661939903]
+custom_minimum_size = Vector2(190, 274)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_right = 190.0
+offset_bottom = 274.0
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_card")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_card")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_card")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_card")
+flat = true
+script = ExtResource("1_card_view")
+
+[node name="ArtTexture" type="TextureRect" parent="." unique_id=1434680790]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_left = 11.0
+offset_top = 11.0
+offset_right = -10.0
+offset_bottom = 177.0
+grow_horizontal = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="FrameTexture" type="TextureRect" parent="." unique_id=1666758627]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_card_frame")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="." unique_id=1371688842]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_left = 54.0
+offset_top = 180.0
+offset_right = -54.0
+offset_bottom = 204.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 17
+text = "卡牌名称"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="DescriptionLabel" type="Label" parent="." unique_id=70790535]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_left = 22.0
+offset_top = 202.0
+offset_right = -26.0
+offset_bottom = 253.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 15
+text = "卡牌描述"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+clip_text = true
+
+[node name="TypeBadge" type="TextureRect" parent="." unique_id=1821571114]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -55.0
+offset_top = -21.0
+offset_right = 55.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = ExtResource("4_type_label")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TypeLabel" type="Label" parent="TypeBadge" unique_id=624499033]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 14
+text = "类型"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CostBadge" type="TextureRect" parent="." unique_id=10182931]
+layout_mode = 1
+anchors_preset = -1
+offset_left = -9.0
+offset_top = -10.0
+offset_right = 35.0
+offset_bottom = 34.0
+mouse_filter = 2
+texture = ExtResource("3_energy_orb")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CostLabel" type="Label" parent="CostBadge" unique_id=1834220517]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 22
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StateOverlay" type="ColorRect" parent="." unique_id=29576220]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.05, 0.04, 0.08, 0.42)

@@ -2,6 +2,7 @@ extends Control
 
 const PLAYER_ID := "player_star"
 const ENEMY_ID := "enemy_corrupted_student"
+const LEVEL_ID := "level_demo_trial"
 
 const TARGET_SELF := 10
 const TARGET_SINGLE_ENEMY := 20
@@ -32,6 +33,11 @@ const STATUS_TRANSFORM := "300002"
 
 const GameDatabaseScript = preload("res://scripts/data/game_database.gd")
 const CorruptedStudentAIScript = preload("res://scripts/enemy_ai/corrupted_student_ai.gd")
+const CardViewScene := preload("res://scenes/ui/CardView.tscn")
+
+const CARD_SLOT_SIZE := Vector2(190, 318)
+const CARD_REST_Y := 44.0
+const CARD_PENDING_Y := 0.0
 
 var database = GameDatabaseScript.new()
 var enemy_ai = CorruptedStudentAIScript.new()
@@ -41,21 +47,27 @@ var phase := "setup"
 
 var player := {}
 var enemy := {}
+var current_level := {}
 var draw_pile: Array[Dictionary] = []
 var hand: Array[Dictionary] = []
 var discard_pile: Array[Dictionary] = []
 var exhaust_pile: Array[Dictionary] = []
 var held_transform_card := {}
+var pending_play_hand_index := -1
 var enemy_action_cards: Array[String] = []
 var enemy_intent_card_id := ""
 var log_lines: Array[String] = []
+var battle_log_expanded := false
 
 @onready var turn_state_label: Label = $TopBar/TurnStateLabel
-@onready var player_info: Label = $StatusArea/PlayerPanel/Margin/PlayerInfo
-@onready var enemy_info: Label = $StatusArea/EnemyPanel/Margin/EnemyInfo
-@onready var pile_info: Label = $StatusArea/PilePanel/Margin/PileInfo
+@onready var player_info: Label = $StatusArea/PlayerPanel/PlayerInfo
+@onready var enemy_info: Label = $StatusArea/EnemyPanel/EnemyInfo
+@onready var pile_info: Label = $StatusArea/PilePanel/PileInfo
+@onready var battle_log_panel: PanelContainer = $CenterArea/BattleLogPanel
 @onready var battle_log: Label = $CenterArea/BattleLogPanel/Margin/BattleLog
+@onready var battle_log_toggle_button: Button = $CenterArea/BattleLogToggleButton
 @onready var hand_list: HBoxContainer = $HandPanel/Margin/HandList
+@onready var background_texture: TextureRect = $BackgroundTexture
 @onready var end_turn_button: Button = $StatusArea/ActionArea/EndTurnButton
 @onready var restart_button: Button = $StatusArea/ActionArea/RestartButton
 @onready var player_image: ColorRect = $BattleArea/PlayerUnit/ImageFrame/Placeholder
@@ -74,6 +86,7 @@ func _ready() -> void:
 	database.load_all()
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	restart_button.pressed.connect(_start_combat)
+	battle_log_toggle_button.pressed.connect(_on_battle_log_toggle_pressed)
 	_start_combat()
 
 func _start_combat() -> void:
@@ -85,11 +98,17 @@ func _start_combat() -> void:
 	discard_pile.clear()
 	exhaust_pile.clear()
 	held_transform_card = {}
+	pending_play_hand_index = -1
 	enemy_action_cards.clear()
 	log_lines.clear()
+	current_level = database.find_level(LEVEL_ID)
+	_load_level_background(current_level)
 
 	var character: Dictionary = database.find_by_id(database.characters, "id", PLAYER_ID)
-	var enemy_row: Dictionary = database.find_by_id(database.enemies, "id", ENEMY_ID)
+	var enemy_id := str(current_level.get("enemy_id", ENEMY_ID))
+	if enemy_id == "":
+		enemy_id = ENEMY_ID
+	var enemy_row: Dictionary = database.find_by_id(database.enemies, "id", enemy_id)
 	if character.is_empty() or enemy_row.is_empty():
 		_log("缺少玩家或敌人配置，无法开始战斗。")
 		_refresh_ui()
@@ -177,6 +196,7 @@ func _start_player_turn() -> void:
 		return
 	turn_count += 1
 	phase = "player"
+	pending_play_hand_index = -1
 	player["magic"] = player["magic_max"]
 	_draw_cards(player["base_draw_count"])
 	_log("第 %s 回合开始。玩家恢复魔力并抽牌。" % turn_count)
@@ -197,23 +217,41 @@ func _draw_cards(count: int) -> void:
 			_log("弃牌堆洗入抽牌堆。")
 		hand.append(draw_pile.pop_front())
 
-func _on_card_pressed(hand_index: int) -> void:
+func _on_card_clicked(hand_index: int) -> void:
 	if phase != "player" or hand_index < 0 or hand_index >= hand.size():
+		return
+	if pending_play_hand_index != hand_index:
+		pending_play_hand_index = hand_index
+		_refresh_hand()
+		return
+	_play_card(hand_index)
+
+func _play_card(hand_index: int) -> void:
+	if phase != "player" or hand_index < 0 or hand_index >= hand.size():
+		pending_play_hand_index = -1
+		_refresh_hand()
 		return
 
 	var instance := hand[hand_index]
 	var card: Dictionary = database.find_card(str(instance.get("card_id", "")))
 	if card.is_empty():
+		pending_play_hand_index = -1
+		_refresh_hand()
 		return
 	if str(card.get("owner_type", "player")) == "enemy":
 		_log("这张牌不属于玩家。")
+		pending_play_hand_index = -1
+		_refresh_hand()
 		return
 
 	var cost := _to_int(card.get("cost", 0))
 	if player["magic"] < cost:
 		_log("魔力不足，无法使用 %s。" % str(card.get("name", "未知卡牌")))
+		pending_play_hand_index = -1
+		_refresh_hand()
 		return
 
+	pending_play_hand_index = -1
 	player["magic"] -= cost
 	hand.remove_at(hand_index)
 	_log("玩家使用 %s。" % str(card.get("name", "未知卡牌")))
@@ -359,6 +397,7 @@ func _add_status(target: Dictionary, status_name: String, stack: int) -> void:
 func _on_end_turn_pressed() -> void:
 	if phase != "player":
 		return
+	pending_play_hand_index = -1
 	_log("玩家结束回合。")
 	while not hand.is_empty():
 		discard_pile.append(hand.pop_front())
@@ -463,75 +502,45 @@ func _refresh_ui() -> void:
 		"1" if not held_transform_card.is_empty() else "0",
 	]
 	battle_log.text = "\n".join(log_lines)
+	_refresh_battle_log_visibility()
 	end_turn_button.disabled = phase != "player"
 	_refresh_hand()
+
+func _refresh_battle_log_visibility() -> void:
+	battle_log_panel.visible = battle_log_expanded
+	battle_log_toggle_button.text = "收起日志" if battle_log_expanded else "展开日志"
+
+func _on_battle_log_toggle_pressed() -> void:
+	battle_log_expanded = not battle_log_expanded
+	_refresh_battle_log_visibility()
 
 func _refresh_hand() -> void:
 	for child in hand_list.get_children():
 		child.queue_free()
 	for i in range(hand.size()):
 		var card: Dictionary = database.find_card(str(hand[i].get("card_id", "")))
-		hand_list.add_child(_create_card_view(card, i))
+		var card_view = CardViewScene.instantiate()
+		var can_play: bool = phase == "player" and player["magic"] >= _to_int(card.get("cost", 0))
+		var is_pending := pending_play_hand_index == i
+		card_view.play_requested.connect(_on_card_clicked)
+		var card_slot := Control.new()
+		card_slot.custom_minimum_size = CARD_SLOT_SIZE
+		card_slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		card_slot.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		card_view.position = Vector2(0, CARD_PENDING_Y if is_pending else CARD_REST_Y)
+		card_slot.add_child(card_view)
+		hand_list.add_child(card_slot)
+		card_view.setup(card, _card_display_data(card), i, can_play, is_pending)
 
-func _create_card_view(card: Dictionary, hand_index: int) -> Control:
-	var can_play: bool = phase == "player" and player["magic"] >= _to_int(card.get("cost", 0))
-	var card_root := Control.new()
-	card_root.custom_minimum_size = Vector2(190, 180)
-	card_root.modulate = Color(1, 1, 1, 1) if can_play else Color(0.55, 0.55, 0.55, 1)
-
-	var frame := TextureRect.new()
-	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
-	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame.stretch_mode = TextureRect.STRETCH_SCALE
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_load_texture_from_path(frame, str(card.get("frame_path", "")))
-	card_root.add_child(frame)
-
-	var margin := MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	card_root.add_child(margin)
-
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 4)
-	margin.add_child(box)
-
-	var title := Label.new()
-	title.text = "%s  费:%s" % [str(card.get("name", "未知卡牌")), str(card.get("cost", 0))]
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.clip_text = true
-	box.add_child(title)
-
-	var art := TextureRect.new()
-	art.custom_minimum_size = Vector2(170, 88)
-	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_load_texture_from_path(art, str(card.get("art_path", "")))
-	box.add_child(art)
-
-	var target := Label.new()
-	target.text = _target_text(_to_int(card.get("target", 0)))
-	target.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	target.clip_text = true
-	box.add_child(target)
-
-	var description := Label.new()
-	description.text = _short_text(str(card.get("description", "")), 24)
-	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description.clip_text = true
-	description.custom_minimum_size = Vector2(170, 28)
-	box.add_child(description)
-
-	var use_button := Button.new()
-	use_button.text = "使用" if can_play else "不可用"
-	use_button.disabled = not can_play
-	use_button.pressed.connect(_on_card_pressed.bind(hand_index))
-	box.add_child(use_button)
-
-	return card_root
+func _card_display_data(card: Dictionary) -> Dictionary:
+	var card_type_id := str(card.get("card_type", ""))
+	return {
+		"type_name": database.get_card_type_name(card_type_id),
+		"art_path": str(card.get("art_path", "")),
+		"frame_path": _default_path(str(card.get("frame_path", "")), "res://assets/ui/card_frame_player.png"),
+		"cost_badge_path": "res://assets/ui/energy_orb_full.png",
+		"type_badge_path": "res://assets/ui/card_type_label.png",
+	}
 
 func _card_button_text(card: Dictionary) -> String:
 	if card.is_empty():
@@ -591,6 +600,15 @@ func _load_unit_image(unit: Dictionary, texture: TextureRect, placeholder: Color
 		texture.visible = false
 		placeholder.visible = true
 
+func _load_level_background(level: Dictionary) -> void:
+	var path := str(level.get("background_path", ""))
+	if path != "" and ResourceLoader.exists(path):
+		background_texture.texture = load(path)
+		background_texture.visible = true
+	else:
+		background_texture.texture = null
+		background_texture.visible = false
+
 func _load_texture_from_path(texture_rect: TextureRect, path: String) -> void:
 	if path != "" and ResourceLoader.exists(path):
 		texture_rect.texture = load(path)
@@ -598,6 +616,9 @@ func _load_texture_from_path(texture_rect: TextureRect, path: String) -> void:
 	else:
 		texture_rect.texture = null
 		texture_rect.visible = false
+
+func _default_path(path: String, fallback_path: String) -> String:
+	return path if path != "" else fallback_path
 
 func _animate_hit(target: Dictionary) -> void:
 	var node := enemy_unit if target.get("unit_type", "") == "enemy" else player_unit
