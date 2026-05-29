@@ -34,7 +34,10 @@ const STATUS_TRANSFORM := "300002"
 const GameDatabaseScript = preload("res://scripts/data/game_database.gd")
 const CorruptedStudentAIScript = preload("res://scripts/enemy_ai/corrupted_student_ai.gd")
 const CardViewScene := preload("res://scenes/ui/CardView.tscn")
+const UnitViewScene := preload("res://scenes/ui/UnitView.tscn")
 
+const DRAW_PILE_CARD_BACK_PATH := "res://assets/ui/card_back_draw_pile.png"
+const MAGIC_ICON_PATH := "res://assets/ui/energy_orb_full.png"
 const CARD_SLOT_SIZE := Vector2(190, 318)
 const CARD_REST_Y := 44.0
 const CARD_PENDING_Y := 0.0
@@ -58,11 +61,19 @@ var enemy_action_cards: Array[String] = []
 var enemy_intent_card_id := ""
 var log_lines: Array[String] = []
 var battle_log_expanded := false
+var player_magic_defense_bar_max := 1
+var enemy_magic_defense_bar_max := 1
+var player_unit_view: UnitView
+var enemy_unit_view: UnitView
 
 @onready var turn_state_label: Label = $TopBar/TurnStateLabel
 @onready var player_info: Label = $StatusArea/PlayerPanel/PlayerInfo
+@onready var magic_icon: TextureRect = $StatusArea/PlayerPanel/MagicIcon
+@onready var magic_value_label: Label = $StatusArea/PlayerPanel/MagicValueLabel
 @onready var enemy_info: Label = $StatusArea/EnemyPanel/EnemyInfo
 @onready var pile_info: Label = $StatusArea/PilePanel/PileInfo
+@onready var draw_pile_card_back: TextureRect = $StatusArea/PilePanel/DrawPileCardBack
+@onready var draw_pile_count_label: Label = $StatusArea/PilePanel/DrawPileCountLabel
 @onready var battle_log_panel: PanelContainer = $CenterArea/BattleLogPanel
 @onready var battle_log: Label = $CenterArea/BattleLogPanel/Margin/BattleLog
 @onready var battle_log_toggle_button: Button = $CenterArea/BattleLogToggleButton
@@ -70,16 +81,8 @@ var battle_log_expanded := false
 @onready var background_texture: TextureRect = $BackgroundTexture
 @onready var end_turn_button: Button = $StatusArea/ActionArea/EndTurnButton
 @onready var restart_button: Button = $StatusArea/ActionArea/RestartButton
-@onready var player_image: ColorRect = $BattleArea/PlayerUnit/ImageFrame/Placeholder
-@onready var enemy_image: ColorRect = $BattleArea/EnemyUnit/ImageFrame/Placeholder
-@onready var player_texture: TextureRect = $BattleArea/PlayerUnit/ImageFrame/Texture
-@onready var enemy_texture: TextureRect = $BattleArea/EnemyUnit/ImageFrame/Texture
-@onready var player_unit: VBoxContainer = $BattleArea/PlayerUnit
-@onready var enemy_unit: VBoxContainer = $BattleArea/EnemyUnit
-@onready var player_name_label: Label = $BattleArea/PlayerUnit/NameLabel
-@onready var enemy_name_label: Label = $BattleArea/EnemyUnit/NameLabel
-@onready var intent_label: Label = $BattleArea/EnemyUnit/IntentLabel
-@onready var intent_art: TextureRect = $BattleArea/EnemyUnit/IntentArt
+@onready var player_unit_slot: Control = $BattleArea/PlayerUnitSlot
+@onready var enemy_unit_slot: Control = $BattleArea/EnemyUnitSlot
 
 func _ready() -> void:
 	add_child(database)
@@ -101,6 +104,8 @@ func _start_combat() -> void:
 	pending_play_hand_index = -1
 	enemy_action_cards.clear()
 	log_lines.clear()
+	player_magic_defense_bar_max = 1
+	enemy_magic_defense_bar_max = 1
 	current_level = database.find_level(LEVEL_ID)
 	_load_level_background(current_level)
 
@@ -153,12 +158,27 @@ func _start_combat() -> void:
 
 	_build_player_deck(str(character.get("starter_deck_id", "")), player["id"])
 	_build_enemy_actions(str(enemy_row.get("starter_deck_id", "")), enemy["id"], str(enemy_row.get("action_ids", "")))
-	_load_unit_image(player, player_texture, player_image)
-	_load_unit_image(enemy, enemy_texture, enemy_image)
+	player_magic_defense_bar_max = max(1, _unit_magic_defense_value(player))
+	enemy_magic_defense_bar_max = max(1, _unit_magic_defense_value(enemy))
 
 	_log("战斗开始：%s 对战 %s。" % [player["name"], enemy["name"]])
 	_choose_enemy_intent()
+	_create_unit_views()
 	_start_player_turn()
+
+func _create_unit_views() -> void:
+	for child in player_unit_slot.get_children():
+		child.queue_free()
+	for child in enemy_unit_slot.get_children():
+		child.queue_free()
+
+	player_unit_view = UnitViewScene.instantiate() as UnitView
+	enemy_unit_view = UnitViewScene.instantiate() as UnitView
+	player_unit_slot.add_child(player_unit_view)
+	enemy_unit_slot.add_child(enemy_unit_view)
+	player_unit_view.setup(player, false, player_magic_defense_bar_max)
+	enemy_unit_view.setup(enemy, true, enemy_magic_defense_bar_max)
+	_refresh_unit_views()
 
 func _build_player_deck(deck_id: String, unit_id: String) -> void:
 	for row in database.get_deck_rows(deck_id, unit_id):
@@ -318,9 +338,12 @@ func _apply_resource_effect(effect: Dictionary, target: Dictionary) -> void:
 			_log("玩家魔力上限 %+d。" % amount)
 		RESOURCE_MAGIC_DEFENSE:
 			player["magic_defense"] = max(0, player["magic_defense"] + amount)
+			player_magic_defense_bar_max = max(player_magic_defense_bar_max, _to_int(player["magic_defense"]))
 			_log("玩家获得 %d 点魔力防御。" % amount)
 		RESOURCE_MAGIC_SHIELD:
 			target["magic_shield"] = max(0, _to_int(target.get("magic_shield", 0)) + amount)
+			if target.get("unit_type", "") == "enemy":
+				enemy_magic_defense_bar_max = max(enemy_magic_defense_bar_max, _unit_magic_defense_value(target))
 			_log("%s 获得 %d 点魔力护盾。" % [target["name"], amount])
 		RESOURCE_AROUSAL:
 			var gained := ceili(float(amount) * (1.0 + float(player["sensitivity"]) / 100.0))
@@ -463,18 +486,10 @@ func _is_combat_over() -> bool:
 	return phase == "victory" or phase == "defeat"
 
 func _refresh_ui() -> void:
-	player_name_label.text = player.get("name", "玩家")
-	enemy_name_label.text = enemy.get("name", "敌人")
 	turn_state_label.text = _phase_text()
 
-	player_info.text = "%s\n生命 %d / %d\n魔力 %d / %d\n魔力护盾 %d\n魔力防御 %d\n形态 %s\n发情值 %d / %d\n敏感值 %d\n堕落值 %d\n状态 %s" % [
-		player.get("name", "玩家"),
-		player.get("hp", 0),
-		player.get("max_hp", 0),
-		player.get("magic", 0),
-		player.get("magic_max", 0),
+	player_info.text = "魔力护盾 %d\n形态 %s  发情值 %d/%d\n敏感 %d  堕落 %d\n状态 %s" % [
 		player.get("magic_shield", 0),
-		player.get("magic_defense", 0),
 		player.get("form", "人类形态"),
 		player.get("arousal", 0),
 		player.get("arousal_max", 100),
@@ -482,29 +497,51 @@ func _refresh_ui() -> void:
 		player.get("corruption", 0),
 		_status_text(player),
 	]
+	_refresh_magic_ui()
 	var intent_card: Dictionary = database.find_card(enemy_intent_card_id)
 	var intent_name := str(intent_card.get("name", "无"))
-	intent_label.text = "意图：%s" % intent_name
-	_load_texture_from_path(intent_art, str(intent_card.get("art_path", "")))
-	enemy_info.text = "%s\n生命 %d / %d\n魔力护盾 %d\n下回合意图 %s\n状态 %s" % [
-		enemy.get("name", "敌人"),
-		enemy.get("hp", 0),
-		enemy.get("max_hp", 0),
-		enemy.get("magic_shield", 0),
+	_refresh_unit_views()
+	enemy_info.text = "下回合意图 %s\n状态 %s" % [
 		intent_name,
 		_status_text(enemy),
 	]
-	pile_info.text = "抽牌堆：%d\n手牌：%d\n弃牌堆：%d\n消耗区：%d\n变身持有：%s" % [
-		draw_pile.size(),
+	pile_info.text = "手牌：%d\n弃牌堆：%d\n消耗区：%d\n变身持有：%s" % [
 		hand.size(),
 		discard_pile.size(),
 		exhaust_pile.size(),
 		"1" if not held_transform_card.is_empty() else "0",
 	]
+	_refresh_pile_ui()
 	battle_log.text = "\n".join(log_lines)
 	_refresh_battle_log_visibility()
 	end_turn_button.disabled = phase != "player"
 	_refresh_hand()
+
+func _refresh_unit_views() -> void:
+	if player_unit_view != null:
+		player_unit_view.refresh(player, player_magic_defense_bar_max)
+	if enemy_unit_view != null:
+		enemy_unit_view.refresh(enemy, enemy_magic_defense_bar_max)
+		enemy_unit_view.set_intent(database.find_card(enemy_intent_card_id))
+
+func _refresh_pile_ui() -> void:
+	var draw_count := draw_pile.size()
+	var has_draw_cards := draw_count > 0
+	draw_pile_card_back.visible = has_draw_cards
+	draw_pile_count_label.visible = draw_count > 0 and draw_count <= 5
+	draw_pile_count_label.text = str(draw_count) if draw_pile_count_label.visible else ""
+
+	if has_draw_cards and draw_pile_card_back.texture == null:
+		_load_texture_from_path(draw_pile_card_back, DRAW_PILE_CARD_BACK_PATH)
+
+func _refresh_magic_ui() -> void:
+	var magic_max: int = _to_int(player.get("magic_max", 0))
+	magic_icon.visible = true
+	magic_value_label.visible = true
+	if magic_icon.texture == null and ResourceLoader.exists(MAGIC_ICON_PATH):
+		magic_icon.texture = load(MAGIC_ICON_PATH)
+	var magic: int = clampi(_to_int(player.get("magic", 0)), 0, max(0, magic_max))
+	magic_value_label.text = "%d/%d" % [magic, magic_max]
 
 func _refresh_battle_log_visibility() -> void:
 	battle_log_panel.visible = battle_log_expanded
@@ -525,6 +562,7 @@ func _refresh_hand() -> void:
 		card_view.play_requested.connect(_on_card_clicked)
 		var card_slot := Control.new()
 		card_slot.custom_minimum_size = CARD_SLOT_SIZE
+		card_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card_slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		card_slot.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card_view.position = Vector2(0, CARD_PENDING_Y if is_pending else CARD_REST_Y)
@@ -590,15 +628,10 @@ func _status_text(unit: Dictionary) -> String:
 		parts.append("%s x%s" % [status.get("name", "状态"), status.get("stack", 1)])
 	return "，".join(parts)
 
-func _load_unit_image(unit: Dictionary, texture: TextureRect, placeholder: ColorRect) -> void:
-	var path := str(unit.get("battle_image_path", ""))
-	if path != "" and ResourceLoader.exists(path):
-		texture.texture = load(path)
-		texture.visible = true
-		placeholder.visible = false
-	else:
-		texture.visible = false
-		placeholder.visible = true
+func _unit_magic_defense_value(unit: Dictionary) -> int:
+	if unit.has("magic_defense"):
+		return max(0, _to_int(unit.get("magic_defense", 0)))
+	return max(0, _to_int(unit.get("magic_shield", 0)))
 
 func _load_level_background(level: Dictionary) -> void:
 	var path := str(level.get("background_path", ""))
@@ -621,7 +654,9 @@ func _default_path(path: String, fallback_path: String) -> String:
 	return path if path != "" else fallback_path
 
 func _animate_hit(target: Dictionary) -> void:
-	var node := enemy_unit if target.get("unit_type", "") == "enemy" else player_unit
+	var node: Control = enemy_unit_view if target.get("unit_type", "") == "enemy" else player_unit_view
+	if node == null:
+		return
 	var original := node.position
 	var offset := Vector2(18, 0) if target.get("unit_type", "") == "enemy" else Vector2(-18, 0)
 	var tween := create_tween()

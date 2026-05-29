@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://cva1q53y3t0pt" path="res://scripts/ui/combat_scene.gd" id="1_combat_scene"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_panel"]
+
 [node name="CombatScene" type="Control" unique_id=970575072]
 layout_mode = 3
 anchors_preset = 15
@@ -42,6 +44,7 @@ offset_top = 20.0
 offset_right = -24.0
 offset_bottom = 76.0
 grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
 
 [node name="TurnStateLabel" type="Label" parent="TopBar" unique_id=1465557382]
 layout_mode = 2
@@ -61,79 +64,32 @@ offset_bottom = -520.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PlayerUnit" type="VBoxContainer" parent="BattleArea" unique_id=1204410261]
+[node name="PlayerUnitSlot" type="Control" parent="BattleArea" unique_id=1204410261]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 120.0
-offset_top = -180.0
-offset_right = 440.0
-offset_bottom = 180.0
+offset_left = 103.0
+offset_top = -174.0
+offset_right = 443.0
+offset_bottom = 318.0
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="NameLabel" type="Label" parent="BattleArea/PlayerUnit" unique_id=659447571]
-layout_mode = 2
-text = "玩家"
-horizontal_alignment = 1
-
-[node name="ImageFrame" type="PanelContainer" parent="BattleArea/PlayerUnit" unique_id=591021447]
-custom_minimum_size = Vector2(280, 280)
-layout_mode = 2
-
-[node name="Placeholder" type="ColorRect" parent="BattleArea/PlayerUnit/ImageFrame" unique_id=19131083]
-layout_mode = 2
-color = Color(0.4, 0.72, 0.94, 1)
-
-[node name="Texture" type="TextureRect" parent="BattleArea/PlayerUnit/ImageFrame" unique_id=467850293]
-visible = false
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="EnemyUnit" type="VBoxContainer" parent="BattleArea" unique_id=574239653]
+[node name="EnemyUnitSlot" type="Control" parent="BattleArea" unique_id=574239653]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -440.0
-offset_top = -210.0
-offset_right = -120.0
-offset_bottom = 180.0
+offset_left = -436.0
+offset_top = -267.0
+offset_right = -96.0
+offset_bottom = 225.0
 grow_horizontal = 0
 grow_vertical = 2
-
-[node name="IntentLabel" type="Label" parent="BattleArea/EnemyUnit" unique_id=283388587]
-layout_mode = 2
-text = "意图：无"
-horizontal_alignment = 1
-
-[node name="IntentArt" type="TextureRect" parent="BattleArea/EnemyUnit" unique_id=1701312127]
-custom_minimum_size = Vector2(180, 120)
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel" type="Label" parent="BattleArea/EnemyUnit" unique_id=1840272005]
-layout_mode = 2
-text = "敌人"
-horizontal_alignment = 1
-
-[node name="ImageFrame" type="PanelContainer" parent="BattleArea/EnemyUnit" unique_id=626559157]
-custom_minimum_size = Vector2(280, 280)
-layout_mode = 2
-
-[node name="Placeholder" type="ColorRect" parent="BattleArea/EnemyUnit/ImageFrame" unique_id=1565696910]
-layout_mode = 2
-color = Color(0.78, 0.36, 0.48, 1)
-
-[node name="Texture" type="TextureRect" parent="BattleArea/EnemyUnit/ImageFrame" unique_id=777924114]
-visible = false
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
+mouse_filter = 2
 
 [node name="CenterArea" type="Control" parent="." unique_id=508844028]
 layout_mode = 1
@@ -156,6 +112,7 @@ anchor_bottom = 1.0
 offset_top = 280.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
 
 [node name="Margin" type="MarginContainer" parent="CenterArea/BattleLogPanel" unique_id=711812345]
 layout_mode = 2
@@ -183,6 +140,7 @@ offset_bottom = -424.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "展开日志"
+flat = true
 
 [node name="StatusArea" type="Control" parent="." unique_id=111947749]
 layout_mode = 1
@@ -201,18 +159,45 @@ grow_vertical = 0
 custom_minimum_size = Vector2(420, 0)
 layout_mode = 1
 offset_left = 62.0
-offset_top = -106.0
 offset_right = 482.0
-offset_bottom = 62.0
+offset_bottom = 112.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
 
 [node name="PlayerInfo" type="Label" parent="StatusArea/PlayerPanel" unique_id=506393348]
 layout_mode = 1
 offset_left = 10.0
 offset_top = 10.0
-offset_right = 410.0
-offset_bottom = 158.0
+offset_right = 320.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 13
 text = "玩家数据"
 autowrap_mode = 3
+
+[node name="MagicIcon" type="TextureRect" parent="StatusArea/PlayerPanel" unique_id=2145056424]
+visible = false
+layout_mode = 1
+offset_left = 373.0
+offset_top = 10.0
+offset_right = 437.0
+offset_bottom = 74.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MagicValueLabel" type="Label" parent="StatusArea/PlayerPanel" unique_id=1397935977]
+visible = false
+layout_mode = 1
+offset_left = 369.0
+offset_top = 10.0
+offset_right = 441.0
+offset_bottom = 74.0
+theme_override_colors/font_color = Color(1, 0.96, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.07, 0.04, 0.12, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 20
+text = "0/0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="EnemyPanel" type="Panel" parent="StatusArea" unique_id=101153001]
 custom_minimum_size = Vector2(380, 0)
@@ -221,6 +206,7 @@ offset_left = 1416.0
 offset_top = -18.0
 offset_right = 1796.0
 offset_bottom = 150.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
 
 [node name="EnemyInfo" type="Label" parent="StatusArea/EnemyPanel" unique_id=379777392]
 layout_mode = 1
@@ -238,13 +224,40 @@ offset_left = 29.0
 offset_top = 240.0
 offset_right = 329.0
 offset_bottom = 408.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
+
+[node name="DrawPileCardBack" type="TextureRect" parent="StatusArea/PilePanel" unique_id=876454029]
+visible = false
+layout_mode = 1
+offset_left = 14.0
+offset_top = 22.0
+offset_right = 98.0
+offset_bottom = 144.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DrawPileCountLabel" type="Label" parent="StatusArea/PilePanel" unique_id=1569434966]
+visible = false
+layout_mode = 1
+offset_left = 14.0
+offset_top = 22.0
+offset_right = 98.0
+offset_bottom = 144.0
+theme_override_colors/font_color = Color(1, 0.96, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.05, 0.14, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 40
+text = "5"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="PileInfo" type="Label" parent="StatusArea/PilePanel" unique_id=1818772067]
 layout_mode = 1
-offset_left = 10.0
-offset_top = 10.0
+offset_left = 112.0
+offset_top = 28.0
 offset_right = 290.0
-offset_bottom = 158.0
+offset_bottom = 148.0
 text = "牌堆信息"
 autowrap_mode = 3
 
@@ -263,6 +276,7 @@ layout_mode = 1
 offset_right = 200.0
 offset_bottom = 64.0
 text = "结束回合"
+flat = true
 
 [node name="RestartButton" type="Button" parent="StatusArea/ActionArea" unique_id=2042694293]
 custom_minimum_size = Vector2(200, 48)
@@ -271,6 +285,7 @@ offset_top = 76.0
 offset_right = 200.0
 offset_bottom = 124.0
 text = "重新开始"
+flat = true
 
 [node name="HandPanel" type="Control" parent="." unique_id=1916707045]
 layout_mode = 1
@@ -284,6 +299,7 @@ offset_right = -24.0
 offset_bottom = -96.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="HandPanel" unique_id=2100000762]
 layout_mode = 1
@@ -292,6 +308,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
@@ -299,5 +316,6 @@ theme_override_constants/margin_bottom = 8
 
 [node name="HandList" type="HBoxContainer" parent="HandPanel/Margin" unique_id=1857214116]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8
 alignment = 1

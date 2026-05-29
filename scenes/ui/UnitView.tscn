@@ -1,0 +1,199 @@
+[gd_scene format=3 uid="uid://d1b0w7n8pjxla"]
+
+[ext_resource type="Script" uid="uid://csw5bimfgfblo" path="res://scripts/ui/unit_view.gd" id="1_unit_view"]
+[ext_resource type="Texture2D" uid="uid://bwrawidp0x8eb" path="res://assets/ui/bar_health_empty.png" id="2_health_empty"]
+[ext_resource type="Texture2D" uid="uid://b4pqt7nicmpnu" path="res://assets/ui/bar_health_full.png" id="3_health_full"]
+[ext_resource type="Texture2D" uid="uid://42bdm1wiauys" path="res://assets/ui/bar_magic_empty.png" id="4_magic_empty"]
+[ext_resource type="Texture2D" uid="uid://c3vb6ebq0ds5p" path="res://assets/ui/bar_magic_full.png" id="5_magic_full"]
+
+[node name="UnitView" type="Control" unique_id=898855039]
+custom_minimum_size = Vector2(340, 528)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 340.0
+offset_bottom = 528.0
+mouse_filter = 2
+script = ExtResource("1_unit_view")
+
+[node name="IntentLabel" type="Label" parent="." unique_id=32947843]
+visible = false
+layout_mode = 1
+offset_left = 10.0
+offset_right = 330.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(1, 0.96, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.03, 0.1, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "意图：无"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="IntentArt" type="TextureRect" parent="." unique_id=1268174548]
+visible = false
+custom_minimum_size = Vector2(150, 100)
+layout_mode = 1
+offset_left = 95.0
+offset_top = 26.0
+offset_right = 245.0
+offset_bottom = 126.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="." unique_id=353736162]
+layout_mode = 1
+offset_left = 10.0
+offset_top = 132.0
+offset_right = 330.0
+offset_bottom = 156.0
+theme_override_colors/font_color = Color(1, 0.96, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.03, 0.1, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "单位"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ImageArea" type="Control" parent="." unique_id=1875408692]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 30.0
+offset_top = 160.0
+offset_right = 310.0
+offset_bottom = 440.0
+mouse_filter = 2
+
+[node name="Placeholder" type="ColorRect" parent="ImageArea" unique_id=577530337]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.35, 0.42, 0.55, 1)
+
+[node name="Texture" type="TextureRect" parent="ImageArea" unique_id=2145847488]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Bars" type="Control" parent="." unique_id=103047921]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 440.0
+offset_right = 330.0
+offset_bottom = 528.0
+mouse_filter = 2
+
+[node name="HealthBar" type="Control" parent="Bars" unique_id=322601106]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 42.0
+mouse_filter = 2
+
+[node name="Empty" type="TextureRect" parent="Bars/HealthBar" unique_id=1236281223]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_health_empty")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FullClip" type="Control" parent="Bars/HealthBar" unique_id=16767669]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 42.0
+mouse_filter = 2
+
+[node name="Full" type="TextureRect" parent="Bars/HealthBar/FullClip" unique_id=1205694026]
+layout_mode = 1
+offset_right = 320.0
+offset_bottom = 42.0
+mouse_filter = 2
+texture = ExtResource("3_health_full")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthValueLabel" type="Label" parent="Bars/HealthBar" unique_id=661436380]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.07, 0.04, 0.12, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "30/30"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MagicDefenseBar" type="Control" parent="Bars" unique_id=333749600]
+layout_mode = 1
+anchors_preset = 0
+offset_top = 46.0
+offset_right = 320.0
+offset_bottom = 88.0
+mouse_filter = 2
+
+[node name="Empty" type="TextureRect" parent="Bars/MagicDefenseBar" unique_id=1667285806]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_magic_empty")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FullClip" type="Control" parent="Bars/MagicDefenseBar" unique_id=118730140]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 0
+offset_right = 320.0
+offset_bottom = 42.0
+mouse_filter = 2
+
+[node name="Full" type="TextureRect" parent="Bars/MagicDefenseBar/FullClip" unique_id=165489532]
+layout_mode = 1
+offset_right = 320.0
+offset_bottom = 42.0
+mouse_filter = 2
+texture = ExtResource("5_magic_full")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MagicDefenseValueLabel" type="Label" parent="Bars/MagicDefenseBar" unique_id=864099358]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.07, 0.04, 0.12, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "0/0"
+horizontal_alignment = 1
+vertical_alignment = 1
