@@ -174,12 +174,11 @@ text = "玩家数据"
 autowrap_mode = 3
 
 [node name="MagicIcon" type="TextureRect" parent="StatusArea/PlayerPanel" unique_id=2145056424]
-visible = false
 layout_mode = 1
-offset_left = 373.0
-offset_top = 10.0
-offset_right = 437.0
-offset_bottom = 74.0
+offset_left = -26.0
+offset_top = 159.0
+offset_right = 38.0
+offset_bottom = 223.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5

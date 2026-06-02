@@ -488,8 +488,7 @@ func _is_combat_over() -> bool:
 func _refresh_ui() -> void:
 	turn_state_label.text = _phase_text()
 
-	player_info.text = "魔力护盾 %d\n形态 %s  发情值 %d/%d\n敏感 %d  堕落 %d\n状态 %s" % [
-		player.get("magic_shield", 0),
+	player_info.text = "形态 %s  发情值 %d/%d\n敏感 %d  堕落 %d\n状态 %s" % [
 		player.get("form", "人类形态"),
 		player.get("arousal", 0),
 		player.get("arousal_max", 100),
@@ -629,9 +628,7 @@ func _status_text(unit: Dictionary) -> String:
 	return "，".join(parts)
 
 func _unit_magic_defense_value(unit: Dictionary) -> int:
-	if unit.has("magic_defense"):
-		return max(0, _to_int(unit.get("magic_defense", 0)))
-	return max(0, _to_int(unit.get("magic_shield", 0)))
+	return max(0, _to_int(unit.get("magic_defense", 0)))
 
 func _load_level_background(level: Dictionary) -> void:
 	var path := str(level.get("background_path", ""))

@@ -6,6 +6,7 @@ class_name UnitView
 @onready var name_label: Label = $NameLabel
 @onready var unit_texture: TextureRect = $ImageArea/Texture
 @onready var placeholder: ColorRect = $ImageArea/Placeholder
+@onready var bars: Control = $Bars
 @onready var health_bar: Control = $Bars/HealthBar
 @onready var health_empty: TextureRect = $Bars/HealthBar/Empty
 @onready var health_full_clip: Control = $Bars/HealthBar/FullClip
@@ -16,6 +17,8 @@ class_name UnitView
 @onready var magic_defense_full_clip: Control = $Bars/MagicDefenseBar/FullClip
 @onready var magic_defense_full: TextureRect = $Bars/MagicDefenseBar/FullClip/Full
 @onready var magic_defense_value_label: Label = $Bars/MagicDefenseBar/MagicDefenseValueLabel
+@onready var magic_shield_icon: Control = $Bars/MagicShieldIcon
+@onready var magic_shield_value_label: Label = $Bars/MagicShieldIcon/MagicShieldValueLabel
 
 var _is_enemy := false
 
@@ -23,6 +26,7 @@ func setup(unit: Dictionary, is_enemy: bool, defense_max: int = 1) -> void:
 	_is_enemy = is_enemy
 	intent_label.visible = is_enemy
 	intent_art.visible = false
+	_position_magic_shield_icon()
 	refresh(unit, defense_max)
 
 func refresh(unit: Dictionary, defense_max: int = 1) -> void:
@@ -30,6 +34,7 @@ func refresh(unit: Dictionary, defense_max: int = 1) -> void:
 	_load_unit_image(str(unit.get("battle_image_path", "")))
 	_refresh_health(unit)
 	_refresh_magic_defense(unit, defense_max)
+	_refresh_magic_shield(unit)
 
 func set_intent(card: Dictionary) -> void:
 	if not _is_enemy:
@@ -57,9 +62,24 @@ func _refresh_magic_defense(unit: Dictionary, defense_max: int) -> void:
 	magic_defense_value_label.text = "%d/%d" % [defense, max_value]
 
 func _unit_magic_defense(unit: Dictionary) -> int:
-	if unit.has("magic_defense"):
-		return max(0, _to_int(unit.get("magic_defense", 0)))
-	return max(0, _to_int(unit.get("magic_shield", 0)))
+	return max(0, _to_int(unit.get("magic_defense", 0)))
+
+func _refresh_magic_shield(unit: Dictionary) -> void:
+	var shield: int = max(0, _to_int(unit.get("magic_shield", 0)))
+	magic_shield_icon.visible = shield > 0
+	if shield <= 0:
+		return
+	magic_shield_value_label.text = str(shield)
+
+func _position_magic_shield_icon() -> void:
+	var icon_size := Vector2(56, 56)
+	var gap := 8.0
+	bars.position.x = icon_size.x + gap if _is_enemy else 10.0
+	var bars_height: float = max(health_bar.size.y, magic_defense_bar.position.y + magic_defense_bar.size.y)
+	var top: float = (bars_height - icon_size.y) * 0.5
+	var left: float = -icon_size.x - gap if _is_enemy else health_bar.size.x + gap
+	magic_shield_icon.position = Vector2(left, top)
+	magic_shield_icon.size = icon_size
 
 func _set_resource_bar_ratio(bar: Control, full_clip: Control, full_texture: TextureRect, ratio: float) -> void:
 	var clamped_ratio := clampf(ratio, 0.0, 1.0)
