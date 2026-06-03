@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://btmvnqu217j78"]
 
 [ext_resource type="Script" uid="uid://cva1q53y3t0pt" path="res://scripts/ui/combat_scene.gd" id="1_combat_scene"]
+[ext_resource type="Script" path="res://scripts/ui/target_arrow_layer.gd" id="2_target_arrow"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_panel"]
 
@@ -217,11 +218,11 @@ text = "敌人数据"
 autowrap_mode = 3
 
 [node name="PilePanel" type="Panel" parent="StatusArea" unique_id=1155501818]
-custom_minimum_size = Vector2(300, 0)
+custom_minimum_size = Vector2(1500, 0)
 layout_mode = 1
 offset_left = 29.0
 offset_top = 240.0
-offset_right = 329.0
+offset_right = 1529.0
 offset_bottom = 408.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
 
@@ -251,12 +252,32 @@ text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="ExhaustPileCardBack" type="TextureRect" parent="StatusArea/PilePanel"]
+layout_mode = 1
+offset_left = 1402.0
+offset_top = 22.0
+offset_right = 1486.0
+offset_bottom = 144.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DiscardPileCardBack" type="TextureRect" parent="StatusArea/PilePanel"]
+layout_mode = 1
+offset_left = 1308.0
+offset_top = 22.0
+offset_right = 1392.0
+offset_bottom = 144.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="PileInfo" type="Label" parent="StatusArea/PilePanel" unique_id=1818772067]
 layout_mode = 1
-offset_left = 112.0
-offset_top = 28.0
+offset_left = 14.0
+offset_top = 148.0
 offset_right = 290.0
-offset_bottom = 148.0
+offset_bottom = 168.0
 text = "牌堆信息"
 autowrap_mode = 3
 
@@ -278,6 +299,7 @@ text = "结束回合"
 flat = true
 
 [node name="RestartButton" type="Button" parent="StatusArea/ActionArea" unique_id=2042694293]
+visible = false
 custom_minimum_size = Vector2(200, 48)
 layout_mode = 1
 offset_top = 76.0
@@ -313,8 +335,17 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 8
 
-[node name="HandList" type="HBoxContainer" parent="HandPanel/Margin" unique_id=1857214116]
+[node name="HandList" type="Control" parent="HandPanel/Margin" unique_id=1857214116]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
-alignment = 1
+
+[node name="TargetArrowLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+z_index = 4096
+script = ExtResource("2_target_arrow")

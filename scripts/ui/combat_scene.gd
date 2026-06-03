@@ -37,10 +37,19 @@ const CardViewScene := preload("res://scenes/ui/CardView.tscn")
 const UnitViewScene := preload("res://scenes/ui/UnitView.tscn")
 
 const DRAW_PILE_CARD_BACK_PATH := "res://assets/ui/card_back_draw_pile.png"
+const DISCARD_PILE_CARD_BACK_PATH := "res://assets/ui/card_back_discard_pile.png"
+const EXHAUST_PILE_CARD_BACK_PATH := "res://assets/ui/card_back_exhaust_pile.png"
 const MAGIC_ICON_PATH := "res://assets/ui/energy_orb_full.png"
 const CARD_SLOT_SIZE := Vector2(190, 318)
-const CARD_REST_Y := 44.0
-const CARD_PENDING_Y := 0.0
+const CARD_VIEW_SIZE := Vector2(190, 274)
+const CARD_HAND_MAX_WIDTH := 1260.0
+const CARD_HAND_MAX_STEP := 136.0
+const CARD_HAND_MIN_STEP := 68.0
+const CARD_HAND_MAX_ROTATION := 10.0
+const CARD_HAND_ARC_DROP := 34.0
+const CARD_HAND_REST_Y := 28.0
+const CARD_PENDING_LIFT := 42.0
+const CARD_HAND_CENTER_OFFSET_X := -70.0
 
 var database = GameDatabaseScript.new()
 var enemy_ai = CorruptedStudentAIScript.new()
@@ -61,6 +70,8 @@ var enemy_action_cards: Array[String] = []
 var enemy_intent_card_id := ""
 var log_lines: Array[String] = []
 var battle_log_expanded := false
+var drag_play_hand_index := -1
+var drag_arrow_start := Vector2.ZERO
 var player_magic_defense_bar_max := 1
 var enemy_magic_defense_bar_max := 1
 var player_unit_view: UnitView
@@ -74,21 +85,22 @@ var enemy_unit_view: UnitView
 @onready var pile_info: Label = $StatusArea/PilePanel/PileInfo
 @onready var draw_pile_card_back: TextureRect = $StatusArea/PilePanel/DrawPileCardBack
 @onready var draw_pile_count_label: Label = $StatusArea/PilePanel/DrawPileCountLabel
+@onready var discard_pile_card_back: TextureRect = $StatusArea/PilePanel/DiscardPileCardBack
+@onready var exhaust_pile_card_back: TextureRect = $StatusArea/PilePanel/ExhaustPileCardBack
 @onready var battle_log_panel: PanelContainer = $CenterArea/BattleLogPanel
 @onready var battle_log: Label = $CenterArea/BattleLogPanel/Margin/BattleLog
 @onready var battle_log_toggle_button: Button = $CenterArea/BattleLogToggleButton
-@onready var hand_list: HBoxContainer = $HandPanel/Margin/HandList
+@onready var hand_list: Control = $HandPanel/Margin/HandList
 @onready var background_texture: TextureRect = $BackgroundTexture
 @onready var end_turn_button: Button = $StatusArea/ActionArea/EndTurnButton
-@onready var restart_button: Button = $StatusArea/ActionArea/RestartButton
 @onready var player_unit_slot: Control = $BattleArea/PlayerUnitSlot
 @onready var enemy_unit_slot: Control = $BattleArea/EnemyUnitSlot
+@onready var target_arrow_layer: TargetArrowLayer = $TargetArrowLayer
 
 func _ready() -> void:
 	add_child(database)
 	database.load_all()
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
-	restart_button.pressed.connect(_start_combat)
 	battle_log_toggle_button.pressed.connect(_on_battle_log_toggle_pressed)
 	_start_combat()
 
@@ -237,16 +249,47 @@ func _draw_cards(count: int) -> void:
 			_log("弃牌堆洗入抽牌堆。")
 		hand.append(draw_pile.pop_front())
 
-func _on_card_clicked(hand_index: int) -> void:
+func _start_card_targeting(hand_index: int, global_position: Vector2) -> void:
 	if phase != "player" or hand_index < 0 or hand_index >= hand.size():
+		_cancel_card_targeting()
 		return
-	if pending_play_hand_index != hand_index:
-		pending_play_hand_index = hand_index
-		_refresh_hand()
-		return
-	_play_card(hand_index)
+	drag_play_hand_index = hand_index
+	pending_play_hand_index = hand_index
+	drag_arrow_start = global_position
+	_update_card_targeting(hand_index, global_position)
 
-func _play_card(hand_index: int) -> void:
+func _update_card_targeting(hand_index: int, global_position: Vector2) -> void:
+	if hand_index != drag_play_hand_index or drag_play_hand_index < 0 or drag_play_hand_index >= hand.size():
+		return
+	var card: Dictionary = database.find_card(str(hand[drag_play_hand_index].get("card_id", "")))
+	var target_side := _target_side_at_global_position(global_position)
+	var is_valid_target := target_side != "" and _is_valid_target_for_card(card, target_side)
+	target_arrow_layer.show_arrow(
+		target_arrow_layer.to_local(drag_arrow_start),
+		target_arrow_layer.to_local(global_position),
+		is_valid_target
+	)
+
+func _finish_card_targeting(hand_index: int, global_position: Vector2) -> void:
+	if hand_index != drag_play_hand_index or hand_index < 0 or hand_index >= hand.size():
+		_cancel_card_targeting()
+		return
+	var card: Dictionary = database.find_card(str(hand[hand_index].get("card_id", "")))
+	var target_side := _target_side_at_global_position(global_position)
+	if target_side == "" or not _is_valid_target_for_card(card, target_side):
+		_cancel_card_targeting()
+		return
+	_cancel_card_targeting(false)
+	_play_card(hand_index, target_side)
+
+func _cancel_card_targeting(refresh_hand: bool = true) -> void:
+	drag_play_hand_index = -1
+	pending_play_hand_index = -1
+	target_arrow_layer.hide_arrow()
+	if refresh_hand:
+		_refresh_hand()
+
+func _play_card(hand_index: int, target_side: String = "") -> void:
 	if phase != "player" or hand_index < 0 or hand_index >= hand.size():
 		pending_play_hand_index = -1
 		_refresh_hand()
@@ -264,6 +307,11 @@ func _play_card(hand_index: int) -> void:
 		_refresh_hand()
 		return
 
+	if target_side == "" or not _is_valid_target_for_card(card, target_side):
+		pending_play_hand_index = -1
+		_refresh_hand()
+		return
+
 	var cost := _to_int(card.get("cost", 0))
 	if player["magic"] < cost:
 		_log("魔力不足，无法使用 %s。" % str(card.get("name", "未知卡牌")))
@@ -275,29 +323,31 @@ func _play_card(hand_index: int) -> void:
 	player["magic"] -= cost
 	hand.remove_at(hand_index)
 	_log("玩家使用 %s。" % str(card.get("name", "未知卡牌")))
-	_resolve_card(card, "player", instance)
+	_resolve_card(card, "player", instance, target_side)
 
 	if str(card.get("id", "")) == "card_star_transform":
 		held_transform_card = instance
+	elif _to_bool(card.get("exhaust", false)):
+		exhaust_pile.append(instance)
 	else:
 		discard_pile.append(instance)
 
 	_post_effect_checks()
 	_refresh_ui()
 
-func _resolve_card(card: Dictionary, source_side: String, card_instance: Dictionary = {}) -> void:
+func _resolve_card(card: Dictionary, source_side: String, card_instance: Dictionary = {}, target_side: String = "") -> void:
 	var effect_ids := str(card.get("effect_ids", "")).split(";", false)
 	for effect_id in effect_ids:
 		var effect: Dictionary = database.find_card_effect(effect_id)
 		if effect.is_empty():
 			_log("找不到效果 %s。" % effect_id)
 			continue
-		_resolve_effect(effect, card, source_side, card_instance)
+		_resolve_effect(effect, card, source_side, card_instance, target_side)
 		if _is_combat_over():
 			return
 
-func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, card_instance: Dictionary = {}) -> void:
-	var target := _select_target(card, source_side)
+func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, card_instance: Dictionary = {}, target_side: String = "") -> void:
+	var target := _select_target(card, source_side, target_side)
 	var effect_type := _to_int(effect.get("effect_type", 0))
 	match effect_type:
 		EFFECT_MODIFY_RESOURCE:
@@ -309,7 +359,11 @@ func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, 
 		_:
 			_log("暂未支持效果类型 %s。" % effect_type)
 
-func _select_target(card: Dictionary, source_side: String) -> Dictionary:
+func _select_target(card: Dictionary, source_side: String, target_side: String = "") -> Dictionary:
+	if target_side == "enemy":
+		return enemy
+	if target_side == "player":
+		return player
 	var target_type := _to_int(card.get("target", TARGET_SELF))
 	if target_type == TARGET_SINGLE_ENEMY:
 		return enemy
@@ -318,6 +372,23 @@ func _select_target(card: Dictionary, source_side: String) -> Dictionary:
 	if target_type == TARGET_SELF:
 		return player if source_side == "player" else enemy
 	return player if source_side == "player" else enemy
+
+func _target_side_at_global_position(global_position: Vector2) -> String:
+	if enemy_unit_view != null and enemy_unit_view.get_global_rect().has_point(global_position):
+		return "enemy"
+	if player_unit_view != null and player_unit_view.get_global_rect().has_point(global_position):
+		return "player"
+	return ""
+
+func _is_valid_target_for_card(card: Dictionary, target_side: String) -> bool:
+	if card.is_empty():
+		return false
+	var target_type := _to_int(card.get("target", TARGET_SELF))
+	if target_type == TARGET_SINGLE_ENEMY:
+		return target_side == "enemy"
+	if target_type == TARGET_PLAYER or target_type == TARGET_SELF:
+		return target_side == "player"
+	return false
 
 func _apply_resource_effect(effect: Dictionary, target: Dictionary) -> void:
 	var parts := _parse_value(effect.get("value", ""))
@@ -504,10 +575,8 @@ func _refresh_ui() -> void:
 		intent_name,
 		_status_text(enemy),
 	]
-	pile_info.text = "手牌：%d\n弃牌堆：%d\n消耗区：%d\n变身持有：%s" % [
+	pile_info.text = "手牌：%d  变身持有：%s" % [
 		hand.size(),
-		discard_pile.size(),
-		exhaust_pile.size(),
 		"1" if not held_transform_card.is_empty() else "0",
 	]
 	_refresh_pile_ui()
@@ -533,6 +602,13 @@ func _refresh_pile_ui() -> void:
 	if has_draw_cards and draw_pile_card_back.texture == null:
 		_load_texture_from_path(draw_pile_card_back, DRAW_PILE_CARD_BACK_PATH)
 
+	discard_pile_card_back.visible = true
+	exhaust_pile_card_back.visible = true
+	if discard_pile_card_back.texture == null:
+		_load_texture_from_path(discard_pile_card_back, DISCARD_PILE_CARD_BACK_PATH)
+	if exhaust_pile_card_back.texture == null:
+		_load_texture_from_path(exhaust_pile_card_back, EXHAUST_PILE_CARD_BACK_PATH)
+
 func _refresh_magic_ui() -> void:
 	var magic_max: int = _to_int(player.get("magic_max", 0))
 	magic_icon.visible = true
@@ -553,18 +629,41 @@ func _on_battle_log_toggle_pressed() -> void:
 func _refresh_hand() -> void:
 	for child in hand_list.get_children():
 		child.queue_free()
+	var hand_count: int = hand.size()
+	if hand_count == 0:
+		return
+	var step: float = CARD_HAND_MAX_STEP
+	if hand_count > 1:
+		step = clampf(CARD_HAND_MAX_WIDTH / float(hand_count - 1), CARD_HAND_MIN_STEP, CARD_HAND_MAX_STEP)
+	var total_width: float = step * float(hand_count - 1) + CARD_VIEW_SIZE.x
+	var hand_area_width: float = hand_list.size.x
+	if hand_area_width <= 0.0:
+		hand_area_width = max(0.0, get_viewport_rect().size.x - 72.0)
+	var start_x: float = max(0.0, (hand_area_width - total_width) * 0.5 + CARD_HAND_CENTER_OFFSET_X)
+	var max_rotation: float = min(CARD_HAND_MAX_ROTATION, 3.0 + float(hand_count) * 1.15)
+	var center_index: float = float(hand_count - 1) * 0.5
 	for i in range(hand.size()):
 		var card: Dictionary = database.find_card(str(hand[i].get("card_id", "")))
 		var card_view = CardViewScene.instantiate()
 		var can_play: bool = phase == "player" and player["magic"] >= _to_int(card.get("cost", 0))
 		var is_pending := pending_play_hand_index == i
-		card_view.play_requested.connect(_on_card_clicked)
+		card_view.play_drag_started.connect(_start_card_targeting)
+		card_view.play_drag_updated.connect(_update_card_targeting)
+		card_view.play_drag_released.connect(_finish_card_targeting)
 		var card_slot := Control.new()
 		card_slot.custom_minimum_size = CARD_SLOT_SIZE
 		card_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		card_slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		card_slot.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		card_view.position = Vector2(0, CARD_PENDING_Y if is_pending else CARD_REST_Y)
+		card_slot.size = CARD_SLOT_SIZE
+		var normalized: float = 0.0 if hand_count == 1 else (float(i) - center_index) / center_index
+		var abs_normalized: float = absf(normalized)
+		var rotation_degrees: float = normalized * max_rotation
+		var arc_drop: float = abs_normalized * CARD_HAND_ARC_DROP
+		var lift: float = CARD_PENDING_LIFT if is_pending else 0.0
+		card_slot.position = Vector2(start_x + step * float(i), CARD_HAND_REST_Y + arc_drop - lift)
+		card_slot.rotation_degrees = rotation_degrees
+		card_slot.pivot_offset = Vector2(CARD_VIEW_SIZE.x * 0.5, CARD_VIEW_SIZE.y)
+		card_slot.z_index = 200 if is_pending else 100 - int(abs_normalized * 20.0)
+		card_view.position = Vector2.ZERO
 		card_slot.add_child(card_view)
 		hand_list.add_child(card_slot)
 		card_view.setup(card, _card_display_data(card), i, can_play, is_pending)
@@ -673,6 +772,12 @@ func _to_int(value: Variant) -> int:
 	if text == "" or text == "待定":
 		return 0
 	return int(text)
+
+func _to_bool(value: Variant) -> bool:
+	if value is bool:
+		return value
+	var text := str(value).strip_edges().to_lower()
+	return text == "true" or text == "1" or text == "yes"
 
 func _log(message: String) -> void:
 	log_lines.append(message)
