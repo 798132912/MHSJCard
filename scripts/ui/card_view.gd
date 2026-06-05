@@ -1,9 +1,9 @@
 extends Button
 class_name CardView
 
-signal play_drag_started(hand_index: int, global_position: Vector2)
-signal play_drag_updated(hand_index: int, global_position: Vector2)
-signal play_drag_released(hand_index: int, global_position: Vector2)
+signal play_drag_started(hand_index: int, mouse_global_position: Vector2)
+signal play_drag_updated(hand_index: int, mouse_global_position: Vector2)
+signal play_drag_released(hand_index: int, mouse_global_position: Vector2)
 
 @onready var frame_texture: TextureRect = $FrameTexture
 @onready var cost_badge: TextureRect = $CostBadge

@@ -1,2 +1,2 @@
 ﻿id,name,unit_type,max_hp,init_magic_shield,starter_deck_id,action_ids,ai_mode,ai_script_path,battle_image_path,portrait_path,hit_motion_profile,comment
-enemy_corrupted_student,堕落的学生,enemy,25,0,enemy_corrupted_student_actions,card_enemy_assault;card_enemy_miasma_shield;card_enemy_hypnosis_ray,10,res://scripts/enemy_ai/corrupted_student_ai.gd,res://assets/characters/enemy_corrupted_student_battle.png,res://assets/characters/enemy_corrupted_student_portrait.png,bump,第一版基础敌人
+enemy_corrupted_student,堕落的学生,enemy,25,0,enemy_corrupted_student_actions,card_enemy_assault;card_enemy_hypnosis_ray,10,res://scripts/enemy_ai/corrupted_student_ai.gd,res://assets/characters/enemy_corrupted_student_battle.png,res://assets/characters/enemy_corrupted_student_portrait.png,bump,第一版基础敌人

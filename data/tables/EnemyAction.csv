@@ -1,4 +1,4 @@
 ﻿id,name,action_type,target,intent_type,effect_ids,intent_description,comment
-card_enemy_assault,袭击,10,30,10,200001;200002,造成5点伤害并提升8点发情值,旧结构镜像：正式行动数据已迁移到 Card 表
-card_enemy_miasma_shield,瘴气护盾,20,10,20,200003,获得6点魔力护盾,旧结构镜像：正式行动数据已迁移到 Card 表
-card_enemy_hypnosis_ray,催眠光线,30,30,30,200004,提升10点敏感值,旧结构镜像：正式行动数据已迁移到 Card 表
+card_enemy_assault,袭击,10,2,10,200001;200002,造成5点伤害并提升8点发情值,旧结构镜像：正式行动数据已迁移到 Card 表
+card_enemy_miasma_shield,瘴气护盾,20,1,20,200003,获得6点魔力护盾,旧结构镜像：正式行动数据已迁移到 Card 表
+card_enemy_hypnosis_ray,催眠光线,30,2,30,200004,提升10点敏感值,旧结构镜像：正式行动数据已迁移到 Card 表

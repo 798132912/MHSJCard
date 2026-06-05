@@ -4,9 +4,9 @@ const PLAYER_ID := "player_star"
 const ENEMY_ID := "enemy_corrupted_student"
 const LEVEL_ID := "level_demo_trial"
 
-const TARGET_SELF := 10
-const TARGET_SINGLE_ENEMY := 20
-const TARGET_PLAYER := 30
+const TARGET_SELF := 1
+const TARGET_SINGLE_ENEMY := 2
+const TARGET_ALL_ENEMIES := 3
 
 const EFFECT_MODIFY_RESOURCE := 100
 const EFFECT_DAMAGE := 200
@@ -50,6 +50,7 @@ const CARD_HAND_ARC_DROP := 34.0
 const CARD_HAND_REST_Y := 28.0
 const CARD_PENDING_LIFT := 42.0
 const CARD_HAND_CENTER_OFFSET_X := -70.0
+const HAND_DRAG_HIGHLIGHT_SCALE := Vector2(1.08, 1.08)
 
 var database = GameDatabaseScript.new()
 var enemy_ai = CorruptedStudentAIScript.new()
@@ -72,6 +73,7 @@ var log_lines: Array[String] = []
 var battle_log_expanded := false
 var drag_play_hand_index := -1
 var drag_arrow_start := Vector2.ZERO
+var drag_has_left_hand_area := false
 var player_magic_defense_bar_max := 1
 var enemy_magic_defense_bar_max := 1
 var player_unit_view: UnitView
@@ -90,6 +92,7 @@ var enemy_unit_view: UnitView
 @onready var battle_log_panel: PanelContainer = $CenterArea/BattleLogPanel
 @onready var battle_log: Label = $CenterArea/BattleLogPanel/Margin/BattleLog
 @onready var battle_log_toggle_button: Button = $CenterArea/BattleLogToggleButton
+@onready var hand_panel: Control = $HandPanel
 @onready var hand_list: Control = $HandPanel/Margin/HandList
 @onready var background_texture: TextureRect = $BackgroundTexture
 @onready var end_turn_button: Button = $StatusArea/ActionArea/EndTurnButton
@@ -249,33 +252,57 @@ func _draw_cards(count: int) -> void:
 			_log("弃牌堆洗入抽牌堆。")
 		hand.append(draw_pile.pop_front())
 
-func _start_card_targeting(hand_index: int, global_position: Vector2) -> void:
+func _start_card_targeting(hand_index: int, mouse_global_position: Vector2) -> void:
 	if phase != "player" or hand_index < 0 or hand_index >= hand.size():
 		_cancel_card_targeting()
 		return
 	drag_play_hand_index = hand_index
 	pending_play_hand_index = hand_index
-	drag_arrow_start = global_position
-	_update_card_targeting(hand_index, global_position)
+	drag_has_left_hand_area = false
+	drag_arrow_start = _hand_card_arrow_start(hand_index)
+	_set_hand_card_highlight(hand_index, true)
+	_update_card_targeting(hand_index, mouse_global_position)
 
-func _update_card_targeting(hand_index: int, global_position: Vector2) -> void:
+func _update_card_targeting(hand_index: int, mouse_global_position: Vector2) -> void:
 	if hand_index != drag_play_hand_index or drag_play_hand_index < 0 or drag_play_hand_index >= hand.size():
 		return
 	var card: Dictionary = database.find_card(str(hand[drag_play_hand_index].get("card_id", "")))
-	var target_side := _target_side_at_global_position(global_position)
+	var is_in_hand_area := _is_in_hand_area(mouse_global_position)
+	if not drag_has_left_hand_area:
+		if is_in_hand_area:
+			target_arrow_layer.hide_arrow()
+			return
+		drag_has_left_hand_area = true
+		drag_arrow_start = _hand_card_arrow_start(hand_index)
+	if is_in_hand_area:
+		target_arrow_layer.hide_arrow()
+		return
+	var target_type := _to_int(card.get("target", TARGET_SELF))
+	if target_type == TARGET_SELF:
+		target_arrow_layer.hide_arrow()
+		return
+	var target_side := _target_side_at_global_position(mouse_global_position)
 	var is_valid_target := target_side != "" and _is_valid_target_for_card(card, target_side)
 	target_arrow_layer.show_arrow(
-		target_arrow_layer.to_local(drag_arrow_start),
-		target_arrow_layer.to_local(global_position),
+		_to_arrow_layer_local(drag_arrow_start),
+		_to_arrow_layer_local(mouse_global_position),
 		is_valid_target
 	)
 
-func _finish_card_targeting(hand_index: int, global_position: Vector2) -> void:
+func _finish_card_targeting(hand_index: int, mouse_global_position: Vector2) -> void:
 	if hand_index != drag_play_hand_index or hand_index < 0 or hand_index >= hand.size():
 		_cancel_card_targeting()
 		return
 	var card: Dictionary = database.find_card(str(hand[hand_index].get("card_id", "")))
-	var target_side := _target_side_at_global_position(global_position)
+	if not drag_has_left_hand_area or _is_in_hand_area(mouse_global_position):
+		_cancel_card_targeting()
+		return
+	var target_type := _to_int(card.get("target", TARGET_SELF))
+	if target_type == TARGET_SELF:
+		_cancel_card_targeting(false)
+		_play_card(hand_index, "player")
+		return
+	var target_side := _target_side_at_global_position(mouse_global_position)
 	if target_side == "" or not _is_valid_target_for_card(card, target_side):
 		_cancel_card_targeting()
 		return
@@ -285,9 +312,42 @@ func _finish_card_targeting(hand_index: int, global_position: Vector2) -> void:
 func _cancel_card_targeting(refresh_hand: bool = true) -> void:
 	drag_play_hand_index = -1
 	pending_play_hand_index = -1
+	drag_has_left_hand_area = false
 	target_arrow_layer.hide_arrow()
 	if refresh_hand:
 		_refresh_hand()
+
+func _set_hand_card_highlight(hand_index: int, highlighted: bool) -> void:
+	var slot := _hand_card_slot(hand_index)
+	if slot != null:
+		slot.scale = HAND_DRAG_HIGHLIGHT_SCALE if highlighted else Vector2.ONE
+		slot.z_index = 260 if highlighted else slot.z_index
+	var card_view := _hand_card_view(hand_index)
+	if card_view != null and highlighted:
+		card_view.modulate = Color(1.12, 1.08, 1.16, 1.0)
+
+func _hand_card_slot(hand_index: int) -> Control:
+	if hand_index < 0 or hand_index >= hand_list.get_child_count():
+		return null
+	return hand_list.get_child(hand_index) as Control
+
+func _hand_card_view(hand_index: int) -> CardView:
+	var slot := _hand_card_slot(hand_index)
+	if slot == null or slot.get_child_count() == 0:
+		return null
+	return slot.get_child(0) as CardView
+
+func _hand_card_arrow_start(hand_index: int) -> Vector2:
+	var card_view := _hand_card_view(hand_index)
+	if card_view != null:
+		return card_view.get_global_rect().get_center()
+	return drag_arrow_start
+
+func _is_in_hand_area(mouse_global_position: Vector2) -> bool:
+	return hand_panel.get_global_rect().has_point(mouse_global_position)
+
+func _to_arrow_layer_local(canvas_position: Vector2) -> Vector2:
+	return target_arrow_layer.get_global_transform().affine_inverse() * canvas_position
 
 func _play_card(hand_index: int, target_side: String = "") -> void:
 	if phase != "player" or hand_index < 0 or hand_index >= hand.size():
@@ -348,6 +408,8 @@ func _resolve_card(card: Dictionary, source_side: String, card_instance: Diction
 
 func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, card_instance: Dictionary = {}, target_side: String = "") -> void:
 	var target := _select_target(card, source_side, target_side)
+	if target.is_empty():
+		return
 	var effect_type := _to_int(effect.get("effect_type", 0))
 	match effect_type:
 		EFFECT_MODIFY_RESOURCE:
@@ -360,35 +422,39 @@ func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, 
 			_log("暂未支持效果类型 %s。" % effect_type)
 
 func _select_target(card: Dictionary, source_side: String, target_side: String = "") -> Dictionary:
-	if target_side == "enemy":
-		return enemy
-	if target_side == "player":
-		return player
 	var target_type := _to_int(card.get("target", TARGET_SELF))
-	if target_type == TARGET_SINGLE_ENEMY:
-		return enemy
-	if target_type == TARGET_PLAYER:
-		return player
 	if target_type == TARGET_SELF:
-		return player if source_side == "player" else enemy
-	return player if source_side == "player" else enemy
+		return _unit_for_side(source_side)
+	if target_type == TARGET_SINGLE_ENEMY or target_type == TARGET_ALL_ENEMIES:
+		return _unit_for_side(target_side if target_side != "" else _opponent_side(source_side))
+	return {}
 
-func _target_side_at_global_position(global_position: Vector2) -> String:
-	if enemy_unit_view != null and enemy_unit_view.get_global_rect().has_point(global_position):
+func _target_side_at_global_position(mouse_global_position: Vector2) -> String:
+	if enemy_unit_view != null and enemy_unit_view.get_global_rect().has_point(mouse_global_position):
 		return "enemy"
-	if player_unit_view != null and player_unit_view.get_global_rect().has_point(global_position):
+	if player_unit_view != null and player_unit_view.get_global_rect().has_point(mouse_global_position):
 		return "player"
 	return ""
 
-func _is_valid_target_for_card(card: Dictionary, target_side: String) -> bool:
+func _is_valid_target_for_card(card: Dictionary, target_side: String, source_side: String = "player") -> bool:
 	if card.is_empty():
 		return false
 	var target_type := _to_int(card.get("target", TARGET_SELF))
-	if target_type == TARGET_SINGLE_ENEMY:
-		return target_side == "enemy"
-	if target_type == TARGET_PLAYER or target_type == TARGET_SELF:
-		return target_side == "player"
+	if target_type == TARGET_SELF:
+		return target_side == source_side
+	if target_type == TARGET_SINGLE_ENEMY or target_type == TARGET_ALL_ENEMIES:
+		return target_side == _opponent_side(source_side)
 	return false
+
+func _unit_for_side(side: String) -> Dictionary:
+	if side == "enemy":
+		return enemy
+	if side == "player":
+		return player
+	return {}
+
+func _opponent_side(source_side: String) -> String:
+	return "player" if source_side == "enemy" else "enemy"
 
 func _apply_resource_effect(effect: Dictionary, target: Dictionary) -> void:
 	var parts := _parse_value(effect.get("value", ""))
@@ -463,7 +529,7 @@ func _calculate_damage(base_amount: int, damage_type: int, source_side: String) 
 		result += floori(float(player["arousal"]) / 10.0)
 	return max(0, result)
 
-func _apply_attach_effect(effect: Dictionary, target: Dictionary, card_instance: Dictionary = {}) -> void:
+func _apply_attach_effect(effect: Dictionary, target: Dictionary, _card_instance: Dictionary = {}) -> void:
 	var parts := _parse_value(effect.get("value", ""))
 	if parts.size() < 2:
 		return
@@ -517,7 +583,6 @@ func _run_enemy_turn() -> void:
 
 func _choose_enemy_intent() -> void:
 	var context := {
-		"enemy_magic_shield": enemy.get("magic_shield", 0),
 		"player_sensitivity": player.get("sensitivity", 0),
 	}
 	var chosen: String = enemy_ai.choose_action(context)
@@ -656,11 +721,11 @@ func _refresh_hand() -> void:
 		card_slot.size = CARD_SLOT_SIZE
 		var normalized: float = 0.0 if hand_count == 1 else (float(i) - center_index) / center_index
 		var abs_normalized: float = absf(normalized)
-		var rotation_degrees: float = normalized * max_rotation
+		var card_rotation_degrees: float = normalized * max_rotation
 		var arc_drop: float = abs_normalized * CARD_HAND_ARC_DROP
 		var lift: float = CARD_PENDING_LIFT if is_pending else 0.0
 		card_slot.position = Vector2(start_x + step * float(i), CARD_HAND_REST_Y + arc_drop - lift)
-		card_slot.rotation_degrees = rotation_degrees
+		card_slot.rotation_degrees = card_rotation_degrees
 		card_slot.pivot_offset = Vector2(CARD_VIEW_SIZE.x * 0.5, CARD_VIEW_SIZE.y)
 		card_slot.z_index = 200 if is_pending else 100 - int(abs_normalized * 20.0)
 		card_view.position = Vector2.ZERO
@@ -699,8 +764,8 @@ func _target_text(target: int) -> String:
 			return "目标：自身"
 		TARGET_SINGLE_ENEMY:
 			return "目标：单个敌人"
-		TARGET_PLAYER:
-			return "目标：玩家"
+		TARGET_ALL_ENEMIES:
+			return "目标：敌方群体"
 		_:
 			return "目标：无"
 
