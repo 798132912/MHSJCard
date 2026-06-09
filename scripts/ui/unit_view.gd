@@ -1,6 +1,8 @@
 extends Control
 class_name UnitView
 
+const CHARACTER_IMAGE_DIR := "res://assets/characters/"
+
 @onready var intent_label: Label = $IntentLabel
 @onready var intent_art: TextureRect = $IntentArt
 @onready var name_label: Label = $NameLabel
@@ -88,14 +90,30 @@ func _set_resource_bar_ratio(bar: Control, full_clip: Control, full_texture: Tex
 	full_clip.size = Vector2(bar_size.x * clamped_ratio, bar_size.y)
 
 func _load_unit_image(path: String) -> void:
-	if path != "" and ResourceLoader.exists(path):
-		unit_texture.texture = load(path)
+	var resolved_path := _resolve_character_image_path(path)
+	if resolved_path != "" and ResourceLoader.exists(resolved_path):
+		unit_texture.texture = load(resolved_path)
 		unit_texture.visible = true
 		placeholder.visible = false
 	else:
 		unit_texture.texture = null
 		unit_texture.visible = false
 		placeholder.visible = true
+
+func _resolve_character_image_path(path: String) -> String:
+	var text := path.strip_edges()
+	if text.begins_with("\""):
+		text = text.substr(1)
+	if text.ends_with("\""):
+		text = text.substr(0, text.length() - 1)
+	text = text.replace("\\", "/")
+	if text == "":
+		return ""
+	if text.begins_with("res://") or text.begins_with("user://"):
+		return text
+	if text.begins_with("assets/characters/"):
+		return "res://" + text
+	return CHARACTER_IMAGE_DIR + text
 
 func _load_texture_from_path(texture_rect: TextureRect, path: String) -> void:
 	if path != "" and ResourceLoader.exists(path):

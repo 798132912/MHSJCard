@@ -99,7 +99,8 @@ mouse_filter = 2
 [node name="HealthBar" type="Control" parent="Bars" unique_id=322601106]
 layout_mode = 1
 anchors_preset = 0
-offset_right = 320.0
+offset_left = 48.0
+offset_right = 297.0
 offset_bottom = 42.0
 mouse_filter = 2
 
@@ -110,7 +111,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 texture = ExtResource("2_health_empty")
 expand_mode = 1
 stretch_mode = 5
@@ -125,9 +125,8 @@ mouse_filter = 2
 
 [node name="Full" type="TextureRect" parent="Bars/HealthBar/FullClip" unique_id=1205694026]
 layout_mode = 1
-offset_right = 320.0
-offset_bottom = 42.0
-mouse_filter = 2
+offset_right = 248.0
+offset_bottom = 45.0
 texture = ExtResource("3_health_full")
 expand_mode = 1
 stretch_mode = 5
@@ -162,7 +161,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 texture = ExtResource("4_magic_empty")
 expand_mode = 1
 stretch_mode = 5
@@ -179,7 +177,6 @@ mouse_filter = 2
 layout_mode = 1
 offset_right = 320.0
 offset_bottom = 42.0
-mouse_filter = 2
 texture = ExtResource("5_magic_full")
 expand_mode = 1
 stretch_mode = 5
@@ -199,7 +196,7 @@ text = "0/0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MagicShieldIcon" type="Control" parent="Bars"]
+[node name="MagicShieldIcon" type="Control" parent="Bars" unique_id=774776366]
 visible = false
 layout_mode = 1
 anchors_preset = 0
@@ -209,7 +206,7 @@ offset_right = 384.0
 offset_bottom = 72.0
 mouse_filter = 2
 
-[node name="Texture" type="TextureRect" parent="Bars/MagicShieldIcon"]
+[node name="Texture" type="TextureRect" parent="Bars/MagicShieldIcon" unique_id=1333383050]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -221,7 +218,7 @@ texture = ExtResource("6_magic_shield")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="MagicShieldValueLabel" type="Label" parent="Bars/MagicShieldIcon"]
+[node name="MagicShieldValueLabel" type="Label" parent="Bars/MagicShieldIcon" unique_id=245665857]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

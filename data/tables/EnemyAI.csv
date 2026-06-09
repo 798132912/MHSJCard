@@ -1,3 +1,4 @@
 ﻿enemy_id,priority,condition,action_id,comment
-enemy_corrupted_student,1,玩家敏感值 < 20,card_enemy_hypnosis_ray,玩家敏感值较低时先提高敏感值
-enemy_corrupted_student,2,否则,card_enemy_assault,默认袭击
+enemy_corrupted_student,1,自身魔力护盾 <= 0,card_enemy_miasma_shield,没有护盾时优先防御
+enemy_corrupted_student,2,玩家敏感值 < 20,card_enemy_hypnosis_ray,玩家敏感值较低时先提高敏感值
+enemy_corrupted_student,3,否则,card_enemy_assault,默认袭击

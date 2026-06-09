@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://btmvnqu217j78"]
 
 [ext_resource type="Script" uid="uid://cva1q53y3t0pt" path="res://scripts/ui/combat_scene.gd" id="1_combat_scene"]
-[ext_resource type="Script" path="res://scripts/ui/target_arrow_layer.gd" id="2_target_arrow"]
+[ext_resource type="Script" uid="uid://dr8vsk3oq31jf" path="res://scripts/ui/target_arrow_layer.gd" id="2_target_arrow"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_panel"]
 
@@ -185,12 +185,11 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="MagicValueLabel" type="Label" parent="StatusArea/PlayerPanel" unique_id=1397935977]
-visible = false
 layout_mode = 1
-offset_left = 369.0
-offset_top = 10.0
-offset_right = 441.0
-offset_bottom = 74.0
+offset_left = -26.0
+offset_top = 159.0
+offset_right = 46.0
+offset_bottom = 223.0
 theme_override_colors/font_color = Color(1, 0.96, 0.78, 1)
 theme_override_colors/font_outline_color = Color(0.07, 0.04, 0.12, 1)
 theme_override_constants/outline_size = 4
@@ -252,7 +251,7 @@ text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ExhaustPileCardBack" type="TextureRect" parent="StatusArea/PilePanel"]
+[node name="ExhaustPileCardBack" type="TextureRect" parent="StatusArea/PilePanel" unique_id=1723053440]
 layout_mode = 1
 offset_left = 1402.0
 offset_top = 22.0
@@ -262,7 +261,7 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="DiscardPileCardBack" type="TextureRect" parent="StatusArea/PilePanel"]
+[node name="DiscardPileCardBack" type="TextureRect" parent="StatusArea/PilePanel" unique_id=547751059]
 layout_mode = 1
 offset_left = 1308.0
 offset_top = 22.0
@@ -339,7 +338,8 @@ theme_override_constants/margin_bottom = 8
 layout_mode = 2
 mouse_filter = 2
 
-[node name="TargetArrowLayer" type="Control" parent="."]
+[node name="TargetArrowLayer" type="Control" parent="." unique_id=1303346928]
+z_index = 4096
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -347,5 +347,4 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-z_index = 4096
 script = ExtResource("2_target_arrow")

@@ -1,4 +1,4 @@
-id,name,need_select,legal_target,comment
+﻿id,name,need_select,legal_target,comment
 1,自身,true,self,出牌者自身；玩家卡只能选玩家自己，怪物行动作用于怪物自己
 2,敌方单体,true,opponent_single,出牌者的单个敌方目标；玩家选怪物，怪物行动默认选玩家
 3,敌方群体,true,opponent_all,出牌者的所有敌方目标；当前单怪战斗中等价为敌方单体

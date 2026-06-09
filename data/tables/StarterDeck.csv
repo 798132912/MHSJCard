@@ -4,4 +4,5 @@ starter_star,player_star,card_star_shot,4,基础攻击牌
 starter_star,player_star,card_magic_defense,4,基础防御牌
 starter_star,player_star,card_ice_armor,1,冰甲样例牌
 enemy_corrupted_student_actions,enemy_corrupted_student,card_enemy_assault,1,怪物行动：袭击
+enemy_corrupted_student_actions,enemy_corrupted_student,card_enemy_miasma_shield,1,怪物行动：瘴气护盾
 enemy_corrupted_student_actions,enemy_corrupted_student,card_enemy_hypnosis_ray,1,怪物行动：催眠光线

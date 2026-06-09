@@ -8,6 +8,9 @@ const TARGET_SELF := 1
 const TARGET_SINGLE_ENEMY := 2
 const TARGET_ALL_ENEMIES := 3
 
+const PLAY_DESTINATION_DISCARD := 20
+const PLAY_DESTINATION_STATUS_HOLD := 30
+
 const EFFECT_MODIFY_RESOURCE := 100
 const EFFECT_DAMAGE := 200
 const EFFECT_ATTACH_EFFECT := 300
@@ -383,30 +386,41 @@ func _play_card(hand_index: int, target_side: String = "") -> void:
 	player["magic"] -= cost
 	hand.remove_at(hand_index)
 	_log("玩家使用 %s。" % str(card.get("name", "未知卡牌")))
-	_resolve_card(card, "player", instance, target_side)
+	_resolve_card(card, "player", target_side)
 
-	if str(card.get("id", "")) == "card_star_transform":
-		held_transform_card = instance
-	elif _to_bool(card.get("exhaust", false)):
-		exhaust_pile.append(instance)
-	else:
-		discard_pile.append(instance)
+	_move_played_card_after_resolution(card, instance)
 
 	_post_effect_checks()
 	_refresh_ui()
 
-func _resolve_card(card: Dictionary, source_side: String, card_instance: Dictionary = {}, target_side: String = "") -> void:
+func _move_played_card_after_resolution(card: Dictionary, instance: Dictionary) -> void:
+	var play_destination := _to_int(card.get("play_destination", PLAY_DESTINATION_DISCARD))
+	match play_destination:
+		PLAY_DESTINATION_STATUS_HOLD:
+			held_transform_card = instance
+		PLAY_DESTINATION_DISCARD:
+			_move_played_card_to_default_pile(card, instance)
+		_:
+			_move_played_card_to_default_pile(card, instance)
+
+func _move_played_card_to_default_pile(card: Dictionary, instance: Dictionary) -> void:
+	if _to_bool(card.get("exhaust", false)):
+		exhaust_pile.append(instance)
+	else:
+		discard_pile.append(instance)
+
+func _resolve_card(card: Dictionary, source_side: String, target_side: String = "") -> void:
 	var effect_ids := str(card.get("effect_ids", "")).split(";", false)
 	for effect_id in effect_ids:
 		var effect: Dictionary = database.find_card_effect(effect_id)
 		if effect.is_empty():
 			_log("找不到效果 %s。" % effect_id)
 			continue
-		_resolve_effect(effect, card, source_side, card_instance, target_side)
+		_resolve_effect(effect, card, source_side, target_side)
 		if _is_combat_over():
 			return
 
-func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, card_instance: Dictionary = {}, target_side: String = "") -> void:
+func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, target_side: String = "") -> void:
 	var target := _select_target(card, source_side, target_side)
 	if target.is_empty():
 		return
@@ -417,7 +431,7 @@ func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, 
 		EFFECT_DAMAGE:
 			_apply_damage_effect(effect, target, source_side)
 		EFFECT_ATTACH_EFFECT:
-			_apply_attach_effect(effect, target, card_instance)
+			_apply_attach_effect(effect, target)
 		_:
 			_log("暂未支持效果类型 %s。" % effect_type)
 
@@ -529,7 +543,7 @@ func _calculate_damage(base_amount: int, damage_type: int, source_side: String) 
 		result += floori(float(player["arousal"]) / 10.0)
 	return max(0, result)
 
-func _apply_attach_effect(effect: Dictionary, target: Dictionary, _card_instance: Dictionary = {}) -> void:
+func _apply_attach_effect(effect: Dictionary, target: Dictionary) -> void:
 	var parts := _parse_value(effect.get("value", ""))
 	if parts.size() < 2:
 		return
