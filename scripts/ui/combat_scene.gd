@@ -4,38 +4,20 @@ const PLAYER_ID := "player_star"
 const ENEMY_ID := "enemy_corrupted_student"
 const LEVEL_ID := "level_demo_trial"
 
-const TARGET_SELF := 1
-const TARGET_SINGLE_ENEMY := 2
-const TARGET_ALL_ENEMIES := 3
-
-const PLAY_DESTINATION_DISCARD := 20
-const PLAY_DESTINATION_STATUS_HOLD := 30
-
-const EFFECT_MODIFY_RESOURCE := 100
-const EFFECT_DAMAGE := 200
-const EFFECT_ATTACH_EFFECT := 300
-
-const DAMAGE_NORMAL := 10
-const DAMAGE_MAGIC := 20
-const DAMAGE_CHARM := 30
-const DAMAGE_PIERCE := 40
-const DAMAGE_TRUE := 50
-const DAMAGE_SHIELD_BREAK := 60
-
-const RESOURCE_HP := 10
-const RESOURCE_MAGIC := 20
-const RESOURCE_MAGIC_MAX := 30
-const RESOURCE_MAGIC_DEFENSE := 40
-const RESOURCE_MAGIC_SHIELD := 50
-const RESOURCE_AROUSAL := 60
-const RESOURCE_SENSITIVITY := 70
-const RESOURCE_CORRUPTION := 80
-
 const STATUS_ICE_ARMOR := "300001"
 const STATUS_TRANSFORM := "300002"
 
 const GameDatabaseScript = preload("res://scripts/data/game_database.gd")
 const CorruptedStudentAIScript = preload("res://scripts/enemy_ai/corrupted_student_ai.gd")
+const EnemyAIControllerScript = preload("res://scripts/enemy_ai/enemy_ai_controller.gd")
+const CardZoneManagerScript = preload("res://scripts/combat/card_zone_manager.gd")
+const CombatControllerScript = preload("res://scripts/combat/combat_controller.gd")
+const EffectResolverScript = preload("res://scripts/combat/effect_resolver.gd")
+const DamageSystemScript = preload("res://scripts/combat/damage_system.gd")
+const ResourceSystemScript = preload("res://scripts/combat/resource_system.gd")
+const StatusSystemScript = preload("res://scripts/combat/status_system.gd")
+const TargetResolverScript = preload("res://scripts/combat/target_resolver.gd")
+const UnitStateFactoryScript = preload("res://scripts/combat/unit_state_factory.gd")
 const CardViewScene := preload("res://scenes/ui/CardView.tscn")
 const UnitViewScene := preload("res://scenes/ui/UnitView.tscn")
 
@@ -57,18 +39,19 @@ const HAND_DRAG_HIGHLIGHT_SCALE := Vector2(1.08, 1.08)
 
 var database = GameDatabaseScript.new()
 var enemy_ai = CorruptedStudentAIScript.new()
-var next_instance_id := 1
-var turn_count := 0
-var phase := "setup"
+var enemy_ai_controller = EnemyAIControllerScript.new()
+var card_zones = CardZoneManagerScript.new()
+var combat_controller = CombatControllerScript.new()
+var effect_resolver = EffectResolverScript.new()
+var damage_system = DamageSystemScript.new()
+var resource_system = ResourceSystemScript.new()
+var status_system = StatusSystemScript.new()
+var target_resolver = TargetResolverScript.new()
+var unit_state_factory = UnitStateFactoryScript.new()
 
 var player := {}
 var enemy := {}
 var current_level := {}
-var draw_pile: Array[Dictionary] = []
-var hand: Array[Dictionary] = []
-var discard_pile: Array[Dictionary] = []
-var exhaust_pile: Array[Dictionary] = []
-var held_transform_card := {}
 var pending_play_hand_index := -1
 var enemy_action_cards: Array[String] = []
 var enemy_intent_card_id := ""
@@ -106,19 +89,23 @@ var enemy_unit_view: UnitView
 func _ready() -> void:
 	add_child(database)
 	database.load_all()
+	enemy_ai_controller.setup(enemy_ai)
+	effect_resolver.setup(
+		database,
+		Callable(self, "_select_target"),
+		Callable(self, "_apply_resource_effect"),
+		Callable(self, "_apply_damage_effect"),
+		Callable(self, "_apply_attach_effect"),
+		Callable(self, "_is_combat_over"),
+		Callable(self, "_log")
+	)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	battle_log_toggle_button.pressed.connect(_on_battle_log_toggle_pressed)
 	_start_combat()
 
 func _start_combat() -> void:
-	next_instance_id = 1
-	turn_count = 0
-	phase = "player"
-	draw_pile.clear()
-	hand.clear()
-	discard_pile.clear()
-	exhaust_pile.clear()
-	held_transform_card = {}
+	combat_controller.start_combat()
+	card_zones.reset()
 	pending_play_hand_index = -1
 	enemy_action_cards.clear()
 	log_lines.clear()
@@ -137,44 +124,10 @@ func _start_combat() -> void:
 		_refresh_ui()
 		return
 
-	player = {
-		"id": str(character.get("id", "")),
-		"name": str(character.get("name", "玩家")),
-		"unit_type": str(character.get("unit_type", "player")),
-		"max_hp": _to_int(character.get("max_hp", 30)),
-		"hp": _to_int(character.get("max_hp", 30)),
-		"base_draw_count": _to_int(character.get("base_draw_count", 5)),
-		"base_hand_limit": _to_int(character.get("base_hand_limit", 10)),
-		"human_base_magic_max": _to_int(character.get("human_base_magic_max", 0)),
-		"magic": _to_int(character.get("human_base_magic_max", 0)),
-		"magic_max": _to_int(character.get("human_base_magic_max", 0)),
-		"magic_shield": _to_int(character.get("init_magic_shield", 0)),
-		"magic_defense": _to_int(character.get("init_magic_defense", 0)),
-		"arousal": _to_int(character.get("init_arousal", 0)),
-		"arousal_max": _to_int(character.get("arousal_max", 100)),
-		"sensitivity": _to_int(character.get("init_sensitivity", 0)),
-		"corruption": _to_int(character.get("init_corruption", 0)),
-		"form": "人类形态",
-		"transformed": false,
-		"statuses": [],
-		"battle_image_path": str(character.get("battle_image_path", "")),
-		"portrait_path": str(character.get("portrait_path", "")),
-		"hit_motion_profile": str(character.get("hit_motion_profile", "bump")),
-	}
-	enemy = {
-		"id": str(enemy_row.get("id", "")),
-		"name": str(enemy_row.get("name", "敌人")),
-		"unit_type": str(enemy_row.get("unit_type", "enemy")),
-		"max_hp": _to_int(enemy_row.get("max_hp", 25)),
-		"hp": _to_int(enemy_row.get("max_hp", 25)),
-		"magic_shield": _to_int(enemy_row.get("init_magic_shield", 0)),
-		"statuses": [],
-		"battle_image_path": str(enemy_row.get("battle_image_path", "")),
-		"portrait_path": str(enemy_row.get("portrait_path", "")),
-		"hit_motion_profile": str(enemy_row.get("hit_motion_profile", "bump")),
-	}
+	player = unit_state_factory.create_player(character)
+	enemy = unit_state_factory.create_enemy(enemy_row)
 
-	_build_player_deck(str(character.get("starter_deck_id", "")), player["id"])
+	card_zones.build_player_deck(database, str(character.get("starter_deck_id", "")), player["id"])
 	_build_enemy_actions(str(enemy_row.get("starter_deck_id", "")), enemy["id"], str(enemy_row.get("action_ids", "")))
 	player_magic_defense_bar_max = max(1, _unit_magic_defense_value(player))
 	enemy_magic_defense_bar_max = max(1, _unit_magic_defense_value(enemy))
@@ -198,16 +151,6 @@ func _create_unit_views() -> void:
 	enemy_unit_view.setup(enemy, true, enemy_magic_defense_bar_max)
 	_refresh_unit_views()
 
-func _build_player_deck(deck_id: String, unit_id: String) -> void:
-	for row in database.get_deck_rows(deck_id, unit_id):
-		var card_id := str(row.get("card_id", ""))
-		var count := _to_int(row.get("count", 1))
-		var card: Dictionary = database.find_card(card_id)
-		if card.is_empty() or str(card.get("owner_type", "player")) == "enemy":
-			continue
-		for i in range(count):
-			draw_pile.append(_new_card_instance(card_id))
-
 func _build_enemy_actions(deck_id: String, unit_id: String, fallback_action_ids: String) -> void:
 	for row in database.get_deck_rows(deck_id, unit_id):
 		var card_id := str(row.get("card_id", ""))
@@ -221,42 +164,19 @@ func _build_enemy_actions(deck_id: String, unit_id: String, fallback_action_ids:
 			if not card.is_empty() and str(card.get("owner_type", "")) == "enemy":
 				enemy_action_cards.append(card_id)
 
-func _new_card_instance(card_id: String) -> Dictionary:
-	var result := {
-		"instance_id": next_instance_id,
-		"card_id": card_id,
-	}
-	next_instance_id += 1
-	return result
-
 func _start_player_turn() -> void:
 	if _is_combat_over():
 		return
-	turn_count += 1
-	phase = "player"
+	var current_turn := combat_controller.start_player_turn()
 	pending_play_hand_index = -1
 	player["magic"] = player["magic_max"]
-	_draw_cards(player["base_draw_count"])
-	_log("第 %s 回合开始。玩家恢复魔力并抽牌。" % turn_count)
+	for message in card_zones.draw_cards(player["base_draw_count"], player["base_hand_limit"]):
+		_log(message)
+	_log("第 %s 回合开始。玩家恢复魔力并抽牌。" % current_turn)
 	_refresh_ui()
 
-func _draw_cards(count: int) -> void:
-	for i in range(count):
-		if hand.size() >= player["base_hand_limit"]:
-			if not draw_pile.is_empty():
-				discard_pile.append(draw_pile.pop_front())
-			continue
-		if draw_pile.is_empty():
-			if discard_pile.is_empty():
-				return
-			draw_pile = discard_pile.duplicate()
-			discard_pile.clear()
-			draw_pile.shuffle()
-			_log("弃牌堆洗入抽牌堆。")
-		hand.append(draw_pile.pop_front())
-
 func _start_card_targeting(hand_index: int, mouse_global_position: Vector2) -> void:
-	if phase != "player" or hand_index < 0 or hand_index >= hand.size():
+	if not combat_controller.is_player_phase() or not card_zones.is_valid_hand_index(hand_index):
 		_cancel_card_targeting()
 		return
 	drag_play_hand_index = hand_index
@@ -267,9 +187,9 @@ func _start_card_targeting(hand_index: int, mouse_global_position: Vector2) -> v
 	_update_card_targeting(hand_index, mouse_global_position)
 
 func _update_card_targeting(hand_index: int, mouse_global_position: Vector2) -> void:
-	if hand_index != drag_play_hand_index or drag_play_hand_index < 0 or drag_play_hand_index >= hand.size():
+	if hand_index != drag_play_hand_index or not card_zones.is_valid_hand_index(drag_play_hand_index):
 		return
-	var card: Dictionary = database.find_card(str(hand[drag_play_hand_index].get("card_id", "")))
+	var card: Dictionary = database.find_card(card_zones.hand_card_id(drag_play_hand_index))
 	var is_in_hand_area := _is_in_hand_area(mouse_global_position)
 	if not drag_has_left_hand_area:
 		if is_in_hand_area:
@@ -280,8 +200,7 @@ func _update_card_targeting(hand_index: int, mouse_global_position: Vector2) -> 
 	if is_in_hand_area:
 		target_arrow_layer.hide_arrow()
 		return
-	var target_type := _to_int(card.get("target", TARGET_SELF))
-	if target_type == TARGET_SELF:
+	if target_resolver.is_self_target(card):
 		target_arrow_layer.hide_arrow()
 		return
 	var target_side := _target_side_at_global_position(mouse_global_position)
@@ -293,15 +212,14 @@ func _update_card_targeting(hand_index: int, mouse_global_position: Vector2) -> 
 	)
 
 func _finish_card_targeting(hand_index: int, mouse_global_position: Vector2) -> void:
-	if hand_index != drag_play_hand_index or hand_index < 0 or hand_index >= hand.size():
+	if hand_index != drag_play_hand_index or not card_zones.is_valid_hand_index(hand_index):
 		_cancel_card_targeting()
 		return
-	var card: Dictionary = database.find_card(str(hand[hand_index].get("card_id", "")))
+	var card: Dictionary = database.find_card(card_zones.hand_card_id(hand_index))
 	if not drag_has_left_hand_area or _is_in_hand_area(mouse_global_position):
 		_cancel_card_targeting()
 		return
-	var target_type := _to_int(card.get("target", TARGET_SELF))
-	if target_type == TARGET_SELF:
+	if target_resolver.is_self_target(card):
 		_cancel_card_targeting(false)
 		_play_card(hand_index, "player")
 		return
@@ -353,13 +271,12 @@ func _to_arrow_layer_local(canvas_position: Vector2) -> Vector2:
 	return target_arrow_layer.get_global_transform().affine_inverse() * canvas_position
 
 func _play_card(hand_index: int, target_side: String = "") -> void:
-	if phase != "player" or hand_index < 0 or hand_index >= hand.size():
+	if not combat_controller.is_player_phase() or not card_zones.is_valid_hand_index(hand_index):
 		pending_play_hand_index = -1
 		_refresh_hand()
 		return
 
-	var instance := hand[hand_index]
-	var card: Dictionary = database.find_card(str(instance.get("card_id", "")))
+	var card: Dictionary = database.find_card(card_zones.hand_card_id(hand_index))
 	if card.is_empty():
 		pending_play_hand_index = -1
 		_refresh_hand()
@@ -384,64 +301,20 @@ func _play_card(hand_index: int, target_side: String = "") -> void:
 
 	pending_play_hand_index = -1
 	player["magic"] -= cost
-	hand.remove_at(hand_index)
+	var instance: Dictionary = card_zones.take_hand_card(hand_index)
 	_log("玩家使用 %s。" % str(card.get("name", "未知卡牌")))
 	_resolve_card(card, "player", target_side)
 
-	_move_played_card_after_resolution(card, instance)
+	card_zones.move_played_card_after_resolution(card, instance)
 
 	_post_effect_checks()
 	_refresh_ui()
 
-func _move_played_card_after_resolution(card: Dictionary, instance: Dictionary) -> void:
-	var play_destination := _to_int(card.get("play_destination", PLAY_DESTINATION_DISCARD))
-	match play_destination:
-		PLAY_DESTINATION_STATUS_HOLD:
-			held_transform_card = instance
-		PLAY_DESTINATION_DISCARD:
-			_move_played_card_to_default_pile(card, instance)
-		_:
-			_move_played_card_to_default_pile(card, instance)
-
-func _move_played_card_to_default_pile(card: Dictionary, instance: Dictionary) -> void:
-	if _to_bool(card.get("exhaust", false)):
-		exhaust_pile.append(instance)
-	else:
-		discard_pile.append(instance)
-
 func _resolve_card(card: Dictionary, source_side: String, target_side: String = "") -> void:
-	var effect_ids := str(card.get("effect_ids", "")).split(";", false)
-	for effect_id in effect_ids:
-		var effect: Dictionary = database.find_card_effect(effect_id)
-		if effect.is_empty():
-			_log("找不到效果 %s。" % effect_id)
-			continue
-		_resolve_effect(effect, card, source_side, target_side)
-		if _is_combat_over():
-			return
-
-func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, target_side: String = "") -> void:
-	var target := _select_target(card, source_side, target_side)
-	if target.is_empty():
-		return
-	var effect_type := _to_int(effect.get("effect_type", 0))
-	match effect_type:
-		EFFECT_MODIFY_RESOURCE:
-			_apply_resource_effect(effect, target)
-		EFFECT_DAMAGE:
-			_apply_damage_effect(effect, target, source_side)
-		EFFECT_ATTACH_EFFECT:
-			_apply_attach_effect(effect, target)
-		_:
-			_log("暂未支持效果类型 %s。" % effect_type)
+	effect_resolver.resolve_card(card, source_side, target_side)
 
 func _select_target(card: Dictionary, source_side: String, target_side: String = "") -> Dictionary:
-	var target_type := _to_int(card.get("target", TARGET_SELF))
-	if target_type == TARGET_SELF:
-		return _unit_for_side(source_side)
-	if target_type == TARGET_SINGLE_ENEMY or target_type == TARGET_ALL_ENEMIES:
-		return _unit_for_side(target_side if target_side != "" else _opponent_side(source_side))
-	return {}
+	return target_resolver.select_target(card, source_side, target_side, player, enemy)
 
 func _target_side_at_global_position(mouse_global_position: Vector2) -> String:
 	if enemy_unit_view != null and enemy_unit_view.get_global_rect().has_point(mouse_global_position):
@@ -451,97 +324,25 @@ func _target_side_at_global_position(mouse_global_position: Vector2) -> String:
 	return ""
 
 func _is_valid_target_for_card(card: Dictionary, target_side: String, source_side: String = "player") -> bool:
-	if card.is_empty():
-		return false
-	var target_type := _to_int(card.get("target", TARGET_SELF))
-	if target_type == TARGET_SELF:
-		return target_side == source_side
-	if target_type == TARGET_SINGLE_ENEMY or target_type == TARGET_ALL_ENEMIES:
-		return target_side == _opponent_side(source_side)
-	return false
-
-func _unit_for_side(side: String) -> Dictionary:
-	if side == "enemy":
-		return enemy
-	if side == "player":
-		return player
-	return {}
-
-func _opponent_side(source_side: String) -> String:
-	return "player" if source_side == "enemy" else "enemy"
+	return target_resolver.is_valid_target_for_card(card, target_side, source_side)
 
 func _apply_resource_effect(effect: Dictionary, target: Dictionary) -> void:
-	var parts := _parse_value(effect.get("value", ""))
-	if parts.size() < 2:
-		return
-	var resource_type := parts[0]
-	var amount := parts[1]
-	match resource_type:
-		RESOURCE_HP:
-			target["hp"] = clampi(_to_int(target.get("hp", 0)) + amount, 0, _to_int(target.get("max_hp", 0)))
-			_log("%s 生命值变化 %+d。" % [target["name"], amount])
-		RESOURCE_MAGIC:
-			player["magic"] = clampi(player["magic"] + amount, 0, player["magic_max"])
-			_log("玩家获得 %d 点当前魔力。" % amount)
-		RESOURCE_MAGIC_MAX:
-			player["magic_max"] += amount
-			player["magic"] = min(player["magic"], player["magic_max"])
-			_log("玩家魔力上限 %+d。" % amount)
-		RESOURCE_MAGIC_DEFENSE:
-			player["magic_defense"] = max(0, player["magic_defense"] + amount)
-			player_magic_defense_bar_max = max(player_magic_defense_bar_max, _to_int(player["magic_defense"]))
-			_log("玩家获得 %d 点魔力防御。" % amount)
-		RESOURCE_MAGIC_SHIELD:
-			target["magic_shield"] = max(0, _to_int(target.get("magic_shield", 0)) + amount)
-			if target.get("unit_type", "") == "enemy":
-				enemy_magic_defense_bar_max = max(enemy_magic_defense_bar_max, _unit_magic_defense_value(target))
-			_log("%s 获得 %d 点魔力护盾。" % [target["name"], amount])
-		RESOURCE_AROUSAL:
-			var gained := ceili(float(amount) * (1.0 + float(player["sensitivity"]) / 100.0))
-			player["arousal"] = clampi(player["arousal"] + gained, 0, player["arousal_max"])
-			_log("玩家发情值提升 %d。" % gained)
-		RESOURCE_SENSITIVITY:
-			player["sensitivity"] = max(0, player["sensitivity"] + amount)
-			_log("玩家敏感值提升 %d。" % amount)
-		RESOURCE_CORRUPTION:
-			player["corruption"] = max(0, player["corruption"] + amount)
-			_log("玩家堕落值提升 %d。" % amount)
+	var result: Dictionary = resource_system.apply_resource_effect(effect, target, player)
+	var player_defense_candidate := _to_int(result.get("player_magic_defense_bar_candidate", -1))
+	if player_defense_candidate >= 0:
+		player_magic_defense_bar_max = max(player_magic_defense_bar_max, player_defense_candidate)
+	var enemy_defense_candidate := _to_int(result.get("enemy_magic_defense_bar_candidate", -1))
+	if enemy_defense_candidate >= 0:
+		enemy_magic_defense_bar_max = max(enemy_magic_defense_bar_max, enemy_defense_candidate)
+	for message in result.get("logs", []):
+		_log(str(message))
 
 func _apply_damage_effect(effect: Dictionary, target: Dictionary, source_side: String) -> void:
-	var parts := _parse_value(effect.get("value", ""))
-	if parts.size() < 2:
-		return
-	var damage_type := parts[0]
-	var amount := _calculate_damage(parts[1], damage_type, source_side)
-	var remaining := amount
-
-	if damage_type == DAMAGE_SHIELD_BREAK:
-		var shield_loss: int = min(_to_int(target.get("magic_shield", 0)), remaining)
-		target["magic_shield"] -= shield_loss
-		_log("%s 的魔力护盾被破坏 %d 点。" % [target["name"], shield_loss])
-		return
-
-	if damage_type != DAMAGE_TRUE and damage_type != DAMAGE_PIERCE:
-		var shield_loss: int = min(_to_int(target.get("magic_shield", 0)), remaining)
-		target["magic_shield"] -= shield_loss
-		remaining -= shield_loss
-
-	if damage_type != DAMAGE_TRUE and target.has("magic_defense"):
-		var defense_loss: int = min(_to_int(target.get("magic_defense", 0)), remaining)
-		target["magic_defense"] -= defense_loss
-		remaining -= defense_loss
-
-	target["hp"] = max(0, _to_int(target.get("hp", 0)) - remaining)
-	_log("%s 受到 %d 点伤害。" % [target["name"], amount])
-	_animate_hit(target)
-
-func _calculate_damage(base_amount: int, damage_type: int, source_side: String) -> int:
-	var result := base_amount
-	if source_side == "player" and damage_type == DAMAGE_MAGIC:
-		result -= floori(float(player["arousal"]) / 10.0)
-	elif source_side == "player" and damage_type == DAMAGE_CHARM:
-		result += floori(float(player["arousal"]) / 10.0)
-	return max(0, result)
+	var result: Dictionary = damage_system.apply_damage_effect(effect, target, source_side, player)
+	for message in result.get("logs", []):
+		_log(str(message))
+	if bool(result.get("animate_hit", false)):
+		_animate_hit(target)
 
 func _apply_attach_effect(effect: Dictionary, target: Dictionary) -> void:
 	var parts := _parse_value(effect.get("value", ""))
@@ -552,30 +353,19 @@ func _apply_attach_effect(effect: Dictionary, target: Dictionary) -> void:
 	if status_id == STATUS_TRANSFORM:
 		player["transformed"] = true
 		player["form"] = "魔法少女形态"
-		_add_status(player, "变身状态", stack)
+		status_system.add_status(player, "变身状态", stack)
 		_log("玩家进入魔法少女形态。")
 	elif status_id == STATUS_ICE_ARMOR:
-		_add_status(target, "冰甲", stack)
+		status_system.add_status(target, "冰甲", stack)
 		_log("%s 获得 %d 层冰甲。" % [target["name"], stack])
 
-func _add_status(target: Dictionary, status_name: String, stack: int) -> void:
-	var statuses: Array = target.get("statuses", [])
-	for status in statuses:
-		if status.get("name", "") == status_name:
-			status["stack"] += stack
-			target["statuses"] = statuses
-			return
-	statuses.append({"name": status_name, "stack": stack})
-	target["statuses"] = statuses
-
 func _on_end_turn_pressed() -> void:
-	if phase != "player":
+	if not combat_controller.is_player_phase():
 		return
 	pending_play_hand_index = -1
 	_log("玩家结束回合。")
-	while not hand.is_empty():
-		discard_pile.append(hand.pop_front())
-	phase = "enemy"
+	card_zones.discard_hand()
+	combat_controller.start_enemy_turn()
 	_refresh_ui()
 	await get_tree().create_timer(0.35).timeout
 	_run_enemy_turn()
@@ -596,13 +386,7 @@ func _run_enemy_turn() -> void:
 	_start_player_turn()
 
 func _choose_enemy_intent() -> void:
-	var context := {
-		"player_sensitivity": player.get("sensitivity", 0),
-	}
-	var chosen: String = enemy_ai.choose_action(context)
-	if not enemy_action_cards.has(chosen) and not enemy_action_cards.is_empty():
-		chosen = enemy_action_cards[0]
-	enemy_intent_card_id = chosen
+	enemy_intent_card_id = enemy_ai_controller.choose_action(player, enemy, enemy_action_cards)
 
 func _post_effect_checks() -> void:
 	if player["transformed"] and player["magic_defense"] <= 0:
@@ -610,30 +394,21 @@ func _post_effect_checks() -> void:
 		player["form"] = "人类形态"
 		player["magic_max"] = player["human_base_magic_max"]
 		player["magic"] = min(player["magic"], player["magic_max"])
-		_remove_status(player, "变身状态")
-		if not held_transform_card.is_empty():
-			discard_pile.append(held_transform_card)
-			held_transform_card = {}
+		status_system.remove_status(player, "变身状态")
+		card_zones.discard_held_transform_card()
 		_log("魔力防御归零，玩家解除变身。")
-	if player["arousal"] >= player["arousal_max"] and phase == "player":
+	if player["arousal"] >= player["arousal_max"] and combat_controller.is_player_phase():
 		_log("玩家发情值达到上限，强制结束回合。")
 		_on_end_turn_pressed()
 	if enemy["hp"] <= 0:
-		phase = "victory"
+		combat_controller.set_victory()
 		_log("战斗胜利。")
 	elif player["hp"] <= 0:
-		phase = "defeat"
+		combat_controller.set_defeat()
 		_log("战斗失败。")
 
-func _remove_status(target: Dictionary, status_name: String) -> void:
-	var statuses: Array = target.get("statuses", [])
-	for i in range(statuses.size() - 1, -1, -1):
-		if statuses[i].get("name", "") == status_name:
-			statuses.remove_at(i)
-	target["statuses"] = statuses
-
 func _is_combat_over() -> bool:
-	return phase == "victory" or phase == "defeat"
+	return combat_controller.is_combat_over()
 
 func _refresh_ui() -> void:
 	turn_state_label.text = _phase_text()
@@ -644,7 +419,7 @@ func _refresh_ui() -> void:
 		player.get("arousal_max", 100),
 		player.get("sensitivity", 0),
 		player.get("corruption", 0),
-		_status_text(player),
+		status_system.status_text(player),
 	]
 	_refresh_magic_ui()
 	var intent_card: Dictionary = database.find_card(enemy_intent_card_id)
@@ -652,16 +427,16 @@ func _refresh_ui() -> void:
 	_refresh_unit_views()
 	enemy_info.text = "下回合意图 %s\n状态 %s" % [
 		intent_name,
-		_status_text(enemy),
+		status_system.status_text(enemy),
 	]
 	pile_info.text = "手牌：%d  变身持有：%s" % [
-		hand.size(),
-		"1" if not held_transform_card.is_empty() else "0",
+		card_zones.hand_size(),
+		"1" if card_zones.has_held_transform_card() else "0",
 	]
 	_refresh_pile_ui()
 	battle_log.text = "\n".join(log_lines)
 	_refresh_battle_log_visibility()
-	end_turn_button.disabled = phase != "player"
+	end_turn_button.disabled = not combat_controller.is_player_phase()
 	_refresh_hand()
 
 func _refresh_unit_views() -> void:
@@ -672,8 +447,8 @@ func _refresh_unit_views() -> void:
 		enemy_unit_view.set_intent(database.find_card(enemy_intent_card_id))
 
 func _refresh_pile_ui() -> void:
-	var draw_count := draw_pile.size()
-	var has_draw_cards := draw_count > 0
+	var draw_count: int = card_zones.draw_pile_size()
+	var has_draw_cards: bool = draw_count > 0
 	draw_pile_card_back.visible = has_draw_cards
 	draw_pile_count_label.visible = draw_count > 0 and draw_count <= 5
 	draw_pile_count_label.text = str(draw_count) if draw_pile_count_label.visible else ""
@@ -708,7 +483,7 @@ func _on_battle_log_toggle_pressed() -> void:
 func _refresh_hand() -> void:
 	for child in hand_list.get_children():
 		child.queue_free()
-	var hand_count: int = hand.size()
+	var hand_count: int = card_zones.hand_size()
 	if hand_count == 0:
 		return
 	var step: float = CARD_HAND_MAX_STEP
@@ -721,10 +496,10 @@ func _refresh_hand() -> void:
 	var start_x: float = max(0.0, (hand_area_width - total_width) * 0.5 + CARD_HAND_CENTER_OFFSET_X)
 	var max_rotation: float = min(CARD_HAND_MAX_ROTATION, 3.0 + float(hand_count) * 1.15)
 	var center_index: float = float(hand_count - 1) * 0.5
-	for i in range(hand.size()):
-		var card: Dictionary = database.find_card(str(hand[i].get("card_id", "")))
+	for i in range(card_zones.hand_size()):
+		var card: Dictionary = database.find_card(card_zones.hand_card_id(i))
 		var card_view = CardViewScene.instantiate()
-		var can_play: bool = phase == "player" and player["magic"] >= _to_int(card.get("cost", 0))
+		var can_play: bool = combat_controller.is_player_phase() and player["magic"] >= _to_int(card.get("cost", 0))
 		var is_pending := pending_play_hand_index == i
 		card_view.play_drag_started.connect(_start_card_targeting)
 		card_view.play_drag_updated.connect(_update_card_targeting)
@@ -757,53 +532,11 @@ func _card_display_data(card: Dictionary) -> Dictionary:
 		"type_badge_path": "res://assets/ui/card_type_label.png",
 	}
 
-func _card_button_text(card: Dictionary) -> String:
-	if card.is_empty():
-		return "未知卡牌"
-	return "%s  费:%s\n%s\n%s" % [
-		str(card.get("name", "未知卡牌")),
-		str(card.get("cost", 0)),
-		_target_text(_to_int(card.get("target", 0))),
-		_short_text(str(card.get("description", "")), 28),
-	]
-
-func _short_text(text: String, max_length: int) -> String:
-	if text.length() <= max_length:
-		return text
-	return text.substr(0, max_length) + "..."
-
 func _target_text(target: int) -> String:
-	match target:
-		TARGET_SELF:
-			return "目标：自身"
-		TARGET_SINGLE_ENEMY:
-			return "目标：单个敌人"
-		TARGET_ALL_ENEMIES:
-			return "目标：敌方群体"
-		_:
-			return "目标：无"
+	return target_resolver.target_text(target)
 
 func _phase_text() -> String:
-	match phase:
-		"player":
-			return "玩家回合"
-		"enemy":
-			return "敌人回合"
-		"victory":
-			return "战斗胜利"
-		"defeat":
-			return "战斗失败"
-		_:
-			return "准备中"
-
-func _status_text(unit: Dictionary) -> String:
-	var statuses: Array = unit.get("statuses", [])
-	if statuses.is_empty():
-		return "无"
-	var parts: Array[String] = []
-	for status in statuses:
-		parts.append("%s x%s" % [status.get("name", "状态"), status.get("stack", 1)])
-	return "，".join(parts)
+	return combat_controller.phase_text()
 
 func _unit_magic_defense_value(unit: Dictionary) -> int:
 	return max(0, _to_int(unit.get("magic_defense", 0)))
@@ -851,12 +584,6 @@ func _to_int(value: Variant) -> int:
 	if text == "" or text == "待定":
 		return 0
 	return int(text)
-
-func _to_bool(value: Variant) -> bool:
-	if value is bool:
-		return value
-	var text := str(value).strip_edges().to_lower()
-	return text == "true" or text == "1" or text == "yes"
 
 func _log(message: String) -> void:
 	log_lines.append(message)
