@@ -94,6 +94,69 @@ function Convert-CellValueToCsvText {
     return $Text
 }
 
+function Test-IsSchemaTypeRow {
+    param(
+        [Parameter(Mandatory = $true)] $Table,
+        [Parameter(Mandatory = $true)] [int] $MaxCol
+    )
+
+    $AllowedTypes = @(
+        "string",
+        "int",
+        "float",
+        "bool",
+        "boolean",
+        "number",
+        "path"
+    )
+    $NonEmptyCount = 0
+
+    for ($ColIndex = 0; $ColIndex -lt $MaxCol; $ColIndex++) {
+        $Key = "2,$ColIndex"
+        if (!$Table.ContainsKey($Key)) {
+            continue
+        }
+
+        $Value = ([string]$Table[$Key]).Trim().ToLowerInvariant()
+        if ([string]::IsNullOrWhiteSpace($Value)) {
+            continue
+        }
+
+        $NonEmptyCount += 1
+        if (
+            ($AllowedTypes -notcontains $Value) -and
+            ($Value -ne "enum") -and
+            (!$Value.StartsWith("ref:")) -and
+            (!$Value.EndsWith("()"))
+        ) {
+            return $false
+        }
+    }
+
+    return $NonEmptyCount -gt 0
+}
+
+function Test-IsEmptyRow {
+    param(
+        [Parameter(Mandatory = $true)] $Table,
+        [Parameter(Mandatory = $true)] [int] $RowNumber,
+        [Parameter(Mandatory = $true)] [int] $MaxCol
+    )
+
+    for ($ColIndex = 0; $ColIndex -lt $MaxCol; $ColIndex++) {
+        $Key = "$RowNumber,$ColIndex"
+        if (!$Table.ContainsKey($Key)) {
+            continue
+        }
+
+        if (![string]::IsNullOrWhiteSpace([string]$Table[$Key])) {
+            return $false
+        }
+    }
+
+    return $true
+}
+
 function Get-SharedStrings {
     param([Parameter(Mandatory = $true)] $Zip)
 
@@ -192,9 +255,13 @@ function Export-XlsxFirstSheetToCsv {
             }
         }
 
+        $SkipSchemaRows = Test-IsSchemaTypeRow -Table $Table -MaxCol $MaxCol
         $Lines = New-Object System.Collections.Generic.List[string]
         for ($RowNumber = 1; $RowNumber -le $MaxRow; $RowNumber++) {
-            if ($RowNumber -eq 2 -or $RowNumber -eq 3) {
+            if ($SkipSchemaRows -and ($RowNumber -eq 2 -or $RowNumber -eq 3)) {
+                continue
+            }
+            if ($RowNumber -gt 1 -and (Test-IsEmptyRow -Table $Table -RowNumber $RowNumber -MaxCol $MaxCol)) {
                 continue
             }
             $Cells = New-Object System.Collections.Generic.List[string]

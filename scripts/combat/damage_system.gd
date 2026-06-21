@@ -1,13 +1,11 @@
 extends RefCounted
 class_name DamageSystem
 
-const DAMAGE_MAGIC := 20
-const DAMAGE_CHARM := 30
 const DAMAGE_PIERCE := 40
 const DAMAGE_TRUE := 50
 const DAMAGE_SHIELD_BREAK := 60
 
-func apply_damage_effect(effect: Dictionary, target: Dictionary, source_side: String, player: Dictionary) -> Dictionary:
+func apply_damage_effect(effect: Dictionary, target: Dictionary, source_side: String, player: Dictionary, enemy: Dictionary = {}) -> Dictionary:
 	var result := {
 		"logs": [],
 		"animate_hit": false,
@@ -17,7 +15,7 @@ func apply_damage_effect(effect: Dictionary, target: Dictionary, source_side: St
 		return result
 
 	var damage_type := parts[0]
-	var amount := _calculate_damage(parts[1], damage_type, source_side, player)
+	var amount := _calculate_damage(parts[1], damage_type, source_side, player, enemy)
 	var remaining := amount
 
 	if damage_type == DAMAGE_SHIELD_BREAK:
@@ -41,13 +39,15 @@ func apply_damage_effect(effect: Dictionary, target: Dictionary, source_side: St
 	result["animate_hit"] = true
 	return result
 
-func _calculate_damage(base_amount: int, damage_type: int, source_side: String, player: Dictionary) -> int:
+func _calculate_damage(base_amount: int, damage_type: int, source_side: String, player: Dictionary, enemy: Dictionary) -> int:
 	var result := base_amount
-	if source_side == "player" and damage_type == DAMAGE_MAGIC:
-		result -= floori(float(player["arousal"]) / 10.0)
-	elif source_side == "player" and damage_type == DAMAGE_CHARM:
-		result += floori(float(player["arousal"]) / 10.0)
+	if damage_type != DAMAGE_SHIELD_BREAK:
+		result += _source_firepower(source_side, player, enemy)
 	return max(0, result)
+
+func _source_firepower(source_side: String, player: Dictionary, enemy: Dictionary) -> int:
+	var source := player if source_side == "player" else enemy
+	return _to_int(source.get("firepower", 0))
 
 func _parse_value(value: Variant) -> Array[int]:
 	var result: Array[int] = []

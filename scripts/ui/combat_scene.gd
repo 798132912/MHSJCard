@@ -6,9 +6,10 @@ const LEVEL_ID := "level_demo_trial"
 
 const STATUS_ICE_ARMOR := "300001"
 const STATUS_TRANSFORM := "300002"
+const STATUS_STUN := "300003"
+const TRIGGER_MAGIC_DEFENSE_BREAK := 90
 
 const GameDatabaseScript = preload("res://scripts/data/game_database.gd")
-const CorruptedStudentAIScript = preload("res://scripts/enemy_ai/corrupted_student_ai.gd")
 const EnemyAIControllerScript = preload("res://scripts/enemy_ai/enemy_ai_controller.gd")
 const CardZoneManagerScript = preload("res://scripts/combat/card_zone_manager.gd")
 const CombatControllerScript = preload("res://scripts/combat/combat_controller.gd")
@@ -38,7 +39,6 @@ const CARD_HAND_CENTER_OFFSET_X := -70.0
 const HAND_DRAG_HIGHLIGHT_SCALE := Vector2(1.08, 1.08)
 
 var database = GameDatabaseScript.new()
-var enemy_ai = CorruptedStudentAIScript.new()
 var enemy_ai_controller = EnemyAIControllerScript.new()
 var card_zones = CardZoneManagerScript.new()
 var combat_controller = CombatControllerScript.new()
@@ -89,7 +89,6 @@ var enemy_unit_view: UnitView
 func _ready() -> void:
 	add_child(database)
 	database.load_all()
-	enemy_ai_controller.setup(enemy_ai)
 	effect_resolver.setup(
 		database,
 		Callable(self, "_select_target"),
@@ -129,6 +128,7 @@ func _start_combat() -> void:
 
 	card_zones.build_player_deck(database, str(character.get("starter_deck_id", "")), player["id"])
 	_build_enemy_actions(str(enemy_row.get("starter_deck_id", "")), enemy["id"], str(enemy_row.get("action_ids", "")))
+	_setup_enemy_ai(enemy_row)
 	player_magic_defense_bar_max = max(1, _unit_magic_defense_value(player))
 	enemy_magic_defense_bar_max = max(1, _unit_magic_defense_value(enemy))
 
@@ -164,11 +164,28 @@ func _build_enemy_actions(deck_id: String, unit_id: String, fallback_action_ids:
 			if not card.is_empty() and str(card.get("owner_type", "")) == "enemy":
 				enemy_action_cards.append(card_id)
 
+func _setup_enemy_ai(enemy_row: Dictionary) -> void:
+	var script_path := str(enemy_row.get("ai_script_path", "")).strip_edges()
+	if script_path == "":
+		enemy_ai_controller.setup(null)
+		return
+	if not ResourceLoader.exists(script_path):
+		_log("找不到敌人行为脚本：%s。" % script_path)
+		enemy_ai_controller.setup(null)
+		return
+	var script := load(script_path)
+	if script == null or not script.can_instantiate():
+		_log("敌人行为脚本无法实例化：%s。" % script_path)
+		enemy_ai_controller.setup(null)
+		return
+	enemy_ai_controller.setup(script.new())
+
 func _start_player_turn() -> void:
 	if _is_combat_over():
 		return
 	var current_turn := combat_controller.start_player_turn()
 	pending_play_hand_index = -1
+	_clear_magic_shield(player)
 	player["magic"] = player["magic_max"]
 	for message in card_zones.draw_cards(player["base_draw_count"], player["base_hand_limit"]):
 		_log(message)
@@ -304,6 +321,7 @@ func _play_card(hand_index: int, target_side: String = "") -> void:
 	var instance: Dictionary = card_zones.take_hand_card(hand_index)
 	_log("玩家使用 %s。" % str(card.get("name", "未知卡牌")))
 	_resolve_card(card, "player", target_side)
+	_apply_arousal_card_use_feedback()
 
 	card_zones.move_played_card_after_resolution(card, instance)
 
@@ -338,7 +356,7 @@ func _apply_resource_effect(effect: Dictionary, target: Dictionary) -> void:
 		_log(str(message))
 
 func _apply_damage_effect(effect: Dictionary, target: Dictionary, source_side: String) -> void:
-	var result: Dictionary = damage_system.apply_damage_effect(effect, target, source_side, player)
+	var result: Dictionary = damage_system.apply_damage_effect(effect, target, source_side, player, enemy)
 	for message in result.get("logs", []):
 		_log(str(message))
 	if bool(result.get("animate_hit", false)):
@@ -358,6 +376,10 @@ func _apply_attach_effect(effect: Dictionary, target: Dictionary) -> void:
 	elif status_id == STATUS_ICE_ARMOR:
 		status_system.add_status(target, "冰甲", stack)
 		_log("%s 获得 %d 层冰甲。" % [target["name"], stack])
+	elif status_id == STATUS_STUN:
+		status_system.add_status(target, "眩晕", stack)
+		target["stun_turns"] = max(_to_int(target.get("stun_turns", 0)), stack)
+		_log("%s 陷入眩晕 %d 回合。" % [target["name"], stack])
 
 func _on_end_turn_pressed() -> void:
 	if not combat_controller.is_player_phase():
@@ -373,6 +395,14 @@ func _on_end_turn_pressed() -> void:
 func _run_enemy_turn() -> void:
 	if _is_combat_over():
 		return
+	_clear_magic_shield(enemy)
+	if _consume_enemy_stun_turn():
+		_post_effect_checks()
+		_choose_enemy_intent()
+		_refresh_ui()
+		await get_tree().create_timer(0.35).timeout
+		_start_player_turn()
+		return
 	var card: Dictionary = database.find_card(enemy_intent_card_id)
 	if card.is_empty():
 		_log("敌人没有可用行动。")
@@ -387,6 +417,54 @@ func _run_enemy_turn() -> void:
 
 func _choose_enemy_intent() -> void:
 	enemy_intent_card_id = enemy_ai_controller.choose_action(player, enemy, enemy_action_cards)
+
+func _clear_magic_shield(unit: Dictionary) -> void:
+	var shield := _to_int(unit.get("magic_shield", 0))
+	if shield <= 0:
+		return
+	unit["magic_shield"] = 0
+	_log("%s 的魔力护盾清空。" % unit.get("name", "单位"))
+
+func _apply_arousal_card_use_feedback() -> void:
+	var threshold := database.get_game_config_int("arousal_card_use_threshold", 50)
+	var gain := database.get_game_config_int("arousal_card_use_gain", 2)
+	if gain <= 0 or _to_int(player.get("arousal", 0)) < threshold:
+		return
+	player["arousal"] = clampi(_to_int(player.get("arousal", 0)) + gain, 0, _to_int(player.get("arousal_max", 100)))
+	_log("发情值过高，使用卡牌额外提升 %d 点发情值。" % gain)
+
+func _consume_enemy_stun_turn() -> bool:
+	var stun_turns := _to_int(enemy.get("stun_turns", 0))
+	if stun_turns <= 0:
+		return false
+	enemy["stun_turns"] = stun_turns - 1
+	_log("%s 魔力防御耗尽，眩晕中。" % enemy.get("name", "敌人"))
+	if _to_int(enemy.get("stun_turns", 0)) <= 0:
+		status_system.remove_status(enemy, "眩晕")
+	return true
+
+func _trigger_enemy_hidden_effects(trigger_timing: int) -> void:
+	var hidden_effect_ids: Array = enemy.get("hidden_effect_ids", [])
+	for effect_id in hidden_effect_ids:
+		var effect: Dictionary = database.find_card_effect(str(effect_id))
+		if effect.is_empty():
+			_log("找不到敌人隐藏效果 %s。" % str(effect_id))
+			continue
+		if _to_int(effect.get("trigger_timing", 0)) != trigger_timing:
+			continue
+		effect_resolver.resolve_standalone_effect(effect, "enemy")
+
+func _handle_enemy_magic_defense_break() -> void:
+	if not bool(enemy.get("magic_defense_break_enabled", false)):
+		return
+	if bool(enemy.get("magic_defense_broken", false)):
+		return
+	if _to_int(enemy.get("magic_defense", 0)) > 0:
+		return
+	enemy["magic_defense_broken"] = true
+	_log("%s 的魔力防御耗尽。" % enemy.get("name", "敌人"))
+	_trigger_enemy_hidden_effects(TRIGGER_MAGIC_DEFENSE_BREAK)
+	_log("选项待实现：净化瘴气 / 继续战斗。")
 
 func _post_effect_checks() -> void:
 	if player["transformed"] and player["magic_defense"] <= 0:
@@ -406,6 +484,8 @@ func _post_effect_checks() -> void:
 	elif player["hp"] <= 0:
 		combat_controller.set_defeat()
 		_log("战斗失败。")
+	else:
+		_handle_enemy_magic_defense_break()
 
 func _is_combat_over() -> bool:
 	return combat_controller.is_combat_over()
@@ -413,20 +493,25 @@ func _is_combat_over() -> bool:
 func _refresh_ui() -> void:
 	turn_state_label.text = _phase_text()
 
-	player_info.text = "形态 %s  发情值 %d/%d\n敏感 %d  堕落 %d\n状态 %s" % [
+	player_info.text = "形态 %s  发情值 %d/%d\n敏感 %d  堕落 %d  暴露 %d\n火力 %d  灵力 %d  状态 %s" % [
 		player.get("form", "人类形态"),
 		player.get("arousal", 0),
 		player.get("arousal_max", 100),
 		player.get("sensitivity", 0),
 		player.get("corruption", 0),
+		player.get("exposure_tendency", 0),
+		player.get("firepower", 0),
+		player.get("spirit", 0),
 		status_system.status_text(player),
 	]
 	_refresh_magic_ui()
 	var intent_card: Dictionary = database.find_card(enemy_intent_card_id)
 	var intent_name := str(intent_card.get("name", "无"))
 	_refresh_unit_views()
-	enemy_info.text = "下回合意图 %s\n状态 %s" % [
+	enemy_info.text = "下回合意图 %s\n火力 %d  灵力 %d  状态 %s" % [
 		intent_name,
+		enemy.get("firepower", 0),
+		enemy.get("spirit", 0),
 		status_system.status_text(enemy),
 	]
 	pile_info.text = "手牌：%d  变身持有：%s" % [

@@ -4,6 +4,16 @@ magic,魔力,回合资源,0,0,,false,当前回合出牌资源
 magic_max,魔力上限,形态资源,0,0,,false,决定回合开始恢复多少魔力
 magic_shield,魔力护盾,防御资源,0,0,,false,先于魔力防御抵挡普通伤害
 magic_defense,魔力防御,变身耐久,0,0,,false,归零时解除变身
-arousal,发情值,特殊属性,0,0,100,true,影响魔力伤害和魅惑伤害
+arousal,发情值,特殊属性,0,0,100,true,用于卡牌条件和其他效果结算
 sensitivity,敏感值,特殊属性,0,0,,true,放大获得的发情值
 corruption,堕落值,特殊属性,0,0,,true,影响卡牌和选项使用条件
+masochism_tendency,受虐倾向,人物属性,0,0,,true,影响选项和对应攻击造成的发情变化
+exposure_tendency,暴露倾向,人物属性,0,0,,true,影响选项和暴露标签攻击造成的发情变化
+kiss_tendency,接吻倾向,人物属性,0,0,,true,影响选项和接吻标签攻击造成的发情变化
+semen,子宫精液含量,特殊资源,0,0,,true,后续用于支付、溢出、泄漏和转化魔力
+chest_sensitivity,胸部敏感度,部位敏感度,0,0,,true,胸部标签攻击会额外提升发情值
+clitoris_sensitivity,阴蒂敏感度,部位敏感度,0,0,,true,阴蒂标签攻击会额外提升发情值
+womb_sensitivity,子宫敏感度,部位敏感度,0,0,,true,子宫标签攻击会额外提升发情值
+vagina_sensitivity,小穴敏感度,部位敏感度,0,0,,true,小穴标签攻击会额外提升发情值
+firepower,火力,战斗属性,0,,,false,修正通过造成伤害效果结算的伤害；正数提高，负数降低
+spirit,灵力,战斗属性,0,,,false,修正获得魔力护盾的数值；正数提高，负数降低

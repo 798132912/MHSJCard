@@ -13,7 +13,7 @@ dest_files=["res://data/tables/DamageTypeConfig.name.translation", "res://data/t
 
 [params]
 
-compress=1
+compress=0
 delimiter=0
 unescape_keys=false
 unescape_translations=true

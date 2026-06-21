@@ -6,14 +6,14 @@ uid="uid://cmvrqjkrre3ob"
 
 [deps]
 
-files=["res://data/tables/Item.name.translation", "res://data/tables/Item.item.translation", "res://data/tables/Item.rarity.translation", "res://data/tables/Item.en.translation", "res://data/tables/Item.can.translation", "res://data/tables/Item.comment.translation"]
+files=["res://data/tables/Item.name.translation", "res://data/tables/Item.item.translation", "res://data/tables/Item.rarity.translation", "res://data/tables/Item.effect.translation", "res://data/tables/Item.can.translation", "res://data/tables/Item.comment.translation"]
 
 source_file="res://data/tables/Item.csv"
-dest_files=["res://data/tables/Item.name.translation", "res://data/tables/Item.item.translation", "res://data/tables/Item.rarity.translation", "res://data/tables/Item.en.translation", "res://data/tables/Item.can.translation", "res://data/tables/Item.comment.translation"]
+dest_files=["res://data/tables/Item.name.translation", "res://data/tables/Item.item.translation", "res://data/tables/Item.rarity.translation", "res://data/tables/Item.effect.translation", "res://data/tables/Item.can.translation", "res://data/tables/Item.comment.translation"]
 
 [params]
 
-compress=1
+compress=0
 delimiter=0
 unescape_keys=false
 unescape_translations=true

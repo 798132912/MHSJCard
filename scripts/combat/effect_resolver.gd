@@ -41,8 +41,14 @@ func resolve_card(card: Dictionary, source_side: String, target_side: String = "
 		if _is_combat_over():
 			return
 
+func resolve_standalone_effect(effect: Dictionary, source_side: String, target_side: String = "") -> void:
+	_resolve_effect(effect, effect, source_side, target_side)
+
 func _resolve_effect(effect: Dictionary, card: Dictionary, source_side: String, target_side: String = "") -> void:
-	var target: Dictionary = select_target_callback.call(card, source_side, target_side)
+	var target_rule := card.duplicate()
+	if str(effect.get("target", "")).strip_edges() != "":
+		target_rule["target"] = effect.get("target", card.get("target", 0))
+	var target: Dictionary = select_target_callback.call(target_rule, source_side, target_side)
 	if target.is_empty():
 		return
 	var effect_type := _to_int(effect.get("effect_type", 0))

@@ -6,14 +6,14 @@ uid="uid://dtpf035nahf6i"
 
 [deps]
 
-files=["res://data/tables/Enemy.name.translation", "res://data/tables/Enemy.unit.translation", "res://data/tables/Enemy.max.translation", "res://data/tables/Enemy.init.translation", "res://data/tables/Enemy.starter.translation", "res://data/tables/Enemy.action.translation", "res://data/tables/Enemy.ai.translation", "res://data/tables/Enemy.ai.translation", "res://data/tables/Enemy.battle.translation", "res://data/tables/Enemy.portrait.translation", "res://data/tables/Enemy.hit.translation", "res://data/tables/Enemy.comment.translation"]
+files=["res://data/tables/Enemy.name.translation", "res://data/tables/Enemy.unit.translation", "res://data/tables/Enemy.max.translation", "res://data/tables/Enemy.init.translation", "res://data/tables/Enemy.init.translation", "res://data/tables/Enemy.hidden.translation", "res://data/tables/Enemy.starter.translation", "res://data/tables/Enemy.action.translation", "res://data/tables/Enemy.ai.translation", "res://data/tables/Enemy.ai.translation", "res://data/tables/Enemy.battle.translation", "res://data/tables/Enemy.portrait.translation", "res://data/tables/Enemy.hit.translation", "res://data/tables/Enemy.comment.translation"]
 
 source_file="res://data/tables/Enemy.csv"
-dest_files=["res://data/tables/Enemy.name.translation", "res://data/tables/Enemy.unit.translation", "res://data/tables/Enemy.max.translation", "res://data/tables/Enemy.init.translation", "res://data/tables/Enemy.starter.translation", "res://data/tables/Enemy.action.translation", "res://data/tables/Enemy.ai.translation", "res://data/tables/Enemy.ai.translation", "res://data/tables/Enemy.battle.translation", "res://data/tables/Enemy.portrait.translation", "res://data/tables/Enemy.hit.translation", "res://data/tables/Enemy.comment.translation"]
+dest_files=["res://data/tables/Enemy.name.translation", "res://data/tables/Enemy.unit.translation", "res://data/tables/Enemy.max.translation", "res://data/tables/Enemy.init.translation", "res://data/tables/Enemy.init.translation", "res://data/tables/Enemy.hidden.translation", "res://data/tables/Enemy.starter.translation", "res://data/tables/Enemy.action.translation", "res://data/tables/Enemy.ai.translation", "res://data/tables/Enemy.ai.translation", "res://data/tables/Enemy.battle.translation", "res://data/tables/Enemy.portrait.translation", "res://data/tables/Enemy.hit.translation", "res://data/tables/Enemy.comment.translation"]
 
 [params]
 
-compress=1
+compress=0
 delimiter=0
 unescape_keys=false
 unescape_translations=true

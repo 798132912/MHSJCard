@@ -13,7 +13,7 @@ dest_files=["res://data/tables/Character.name.translation", "res://data/tables/C
 
 [params]
 
-compress=1
+compress=0
 delimiter=0
 unescape_keys=false
 unescape_translations=true

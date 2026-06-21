@@ -98,6 +98,15 @@ func get_card_type_name(card_type_id: String) -> String:
 		return card_type_id
 	return str(card_type.get("name", card_type_id))
 
+func get_game_config_value(config_id: String, default_value: Variant = "") -> Variant:
+	var config := find_by_id(game_configs, "id", config_id)
+	if config.is_empty():
+		return default_value
+	return config.get("value", default_value)
+
+func get_game_config_int(config_id: String, default_value: int = 0) -> int:
+	return _to_int(get_game_config_value(config_id, default_value))
+
 func get_deck_rows(deck_id: String, unit_id: String = "") -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for row in starter_decks:
@@ -107,3 +116,11 @@ func get_deck_rows(deck_id: String, unit_id: String = "") -> Array[Dictionary]:
 			continue
 		result.append(row)
 	return result
+
+func _to_int(value: Variant) -> int:
+	if value == null:
+		return 0
+	var text := str(value).strip_edges()
+	if text == "" or text == "待定":
+		return 0
+	return int(text)

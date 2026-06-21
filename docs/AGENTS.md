@@ -123,6 +123,8 @@ Godot 读取 data/tables/*.csv
 ```
 
 - 不要只手改 CSV 而不更新 Excel 源表。
+- 当 Excel 和 CSV 内容不一致时，以 Excel 为准；CSV 只能说明当前导出结果，不能反向证明 Excel 配置错误。
+- 除非用户明确要求从 CSV 恢复 Excel，否则不要把 CSV 的旧值回填到 Excel。
 - 表格字段和枚举规则以 `数据表结构说明.md`、`表格规范文档.md`、`CardEffect机制文档.md` 为准。
 - 资源路径使用 Godot 路径，例如：
 
