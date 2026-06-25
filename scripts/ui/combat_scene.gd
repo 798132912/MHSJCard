@@ -505,11 +505,8 @@ func _refresh_ui() -> void:
 		status_system.status_text(player),
 	]
 	_refresh_magic_ui()
-	var intent_card: Dictionary = database.find_card(enemy_intent_card_id)
-	var intent_name := str(intent_card.get("name", "无"))
 	_refresh_unit_views()
-	enemy_info.text = "下回合意图 %s\n火力 %d  灵力 %d  状态 %s" % [
-		intent_name,
+	enemy_info.text = "火力 %d  灵力 %d\n状态 %s" % [
 		enemy.get("firepower", 0),
 		enemy.get("spirit", 0),
 		status_system.status_text(enemy),
